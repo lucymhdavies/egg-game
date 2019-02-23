@@ -18,13 +18,20 @@ var (
 type World struct {
 	Width  int
 	Height int
+
+	egg *Egg
 }
 
 func NewWorld(size int) *World {
-	return &World{
+	w := &World{
 		Width:  size,
 		Height: size,
 	}
+
+	// Create egg
+	w.egg = NewEgg(w)
+
+	return w
 }
 
 func init() {
@@ -47,6 +54,11 @@ func (world *World) Draw(screen *ebiten.Image) error {
 		op.GeoM.Translate(float64((i%xNum)*tileSize), float64((i/xNum)*tileSize))
 
 		screen.DrawImage(imageGameBG, op)
+	}
+
+	err := world.egg.Draw(screen)
+	if err != nil {
+		return err
 	}
 
 	return nil
