@@ -11,8 +11,9 @@ import (
 
 const (
 	ScreenWidth  = 256
-	ScreenHeight = 384
-	logLevel     = log.DebugLevel
+	ScreenHeight = 256
+	//ScreenHeight = 384 // room for the buttons later
+	logLevel = log.DebugLevel
 )
 
 func init() {
