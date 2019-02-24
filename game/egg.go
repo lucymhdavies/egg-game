@@ -17,10 +17,13 @@ import (
 type State int
 
 const (
-	StateUnhatched State = iota
+	StateUnhatched State = iota // Unused
 	StateIdle
 	StateBounce
-	StateSleep
+	StateDead
+	StateSick  // Unused. Something like, if its health is low
+	StateEat   // Unused
+	StateSleep // Unused
 )
 
 var (
@@ -30,6 +33,13 @@ var (
 	bounceChance = 0.01
 	//bounceChance   = 1.0
 	maxBounceSpeed = 0.5
+
+	// How old does it have to be before it potentially dies of old age
+	// For now, hard code something really short
+	minOldAgeDeath = 10.0
+
+	// how likely it is that old age will lower health
+	oldAgeSicknessChance = 0.1
 
 	names = []string{
 		"Aleggsendra", "Deggniel", "Eggberta", "Egglan", "Egglizabeth",
@@ -52,6 +62,28 @@ type Egg struct {
 	name  string
 	world *World
 	state State
+
+	// Some stats we could use for these eggs
+	stats struct {
+		// The older it is, the more likely it is to die of old age
+		// (i.e. randomly drop in health)
+		age float64
+		// Once it gets to health 0, it dies
+		health uint8
+
+		//
+		// Unused below, so far
+		//
+
+		// Once this reaches 255, start losing health
+		hunger uint8
+		// Increases based on food input + time
+		bladder   uint8
+		tiredness uint8
+		comfort   uint8
+		social    uint8
+		hygene    uint8
+	}
 }
 
 func NewEgg(w *World) *Egg {
@@ -65,6 +97,13 @@ func NewEgg(w *World) *Egg {
 	}
 
 	e.name = names[rand.Intn(len(names))]
+
+	// Set default stats
+	e.stats.health = 255
+
+	//
+	// TODO: all this sprite loading stuff should be in init()
+	//
 
 	// Get body image
 	img, _, err := image.Decode(bytes.NewReader(sprites.EggBody_png))
@@ -105,12 +144,39 @@ func NewEgg(w *World) *Egg {
 
 func (egg *Egg) Update() error {
 
+	if egg.state == StateDead {
+		return nil
+	}
+	if egg.stats.health == 0 {
+		egg.state = StateDead
+		egg.name = "DEAD"
+		return nil
+	}
+
+	if ebiten.CurrentTPS() > 0 {
+		// Age the egg by deltatime
+		deltaTime := 1 / ebiten.CurrentTPS()
+		egg.stats.age += deltaTime
+	} else {
+		return nil
+	}
+
 	switch egg.state {
 	case StateUnhatched:
 		// Hatching not yet implemented, so just go straight to idle
 		egg.state = StateIdle
 
 	case StateIdle:
+		if egg.stats.age > minOldAgeDeath {
+			// the older the egg is beyond its "minimum old age" age,
+			// the more health it should lose
+			sicknessChance := oldAgeSicknessChance * (egg.stats.age - minOldAgeDeath)
+
+			if sicknessChance > 1.0 || rand.Float64() <= sicknessChance {
+				egg.stats.health--
+			}
+		}
+
 		if rand.Float64() <= bounceChance {
 			egg.state = StateBounce
 			egg.velocity.Z += 1
@@ -157,6 +223,10 @@ func (egg *Egg) Update() error {
 }
 
 func (egg *Egg) Draw(screen *ebiten.Image) error {
+	// TODO: split the drawing up into smaller functions
+	// Maybe have types for different bits of the body?
+	// Probably overkill.
+
 	op.GeoM.Reset()
 	op.ColorM.Reset()
 
@@ -172,11 +242,13 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 	op.GeoM.Reset()
 	op.ColorM.Reset()
 	op.GeoM.Translate(egg.position.X-egg.size.X/2, egg.position.Y-egg.size.Y/2-egg.position.Z)
+	if egg.state == StateDead {
+		op.ColorM.Scale(255, 255, 255, 0.5)
+	}
 	screen.DrawImage(egg.images.body, op)
 
 	// Draw eyes
 	op.GeoM.Reset()
-	op.ColorM.Reset()
 
 	// Left eyeball
 	eyeSizeX, eyeSizeY := egg.images.eyeBall.Size()

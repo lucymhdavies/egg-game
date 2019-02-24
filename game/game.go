@@ -76,10 +76,14 @@ func (g *Game) draw(screen *ebiten.Image) error {
 	g.world.Draw(screen)
 
 	if debugMode {
-		msg := fmt.Sprintf(`TPS: %0.2f, FPS: %0.2f
+		msg := fmt.Sprintf(`TPS: %0.2f, FPS: %0.2f,
+Age: %0.2f,
+Health: %d,
 Press Q to quit`,
 			ebiten.CurrentTPS(),
 			ebiten.CurrentFPS(),
+			g.world.egg.stats.age,
+			g.world.egg.stats.health,
 		)
 		ebitenutil.DebugPrint(screen, msg)
 	}
