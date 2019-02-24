@@ -2,6 +2,7 @@ package game
 
 import (
 	"errors"
+	"runtime"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/inpututil"
@@ -13,8 +14,10 @@ type Input struct {
 }
 
 func (i *Input) Update() error {
-	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
-		return RegularTermination
+	if runtime.GOARCH != "js" {
+		if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
+			return RegularTermination
+		}
 	}
 
 	return nil

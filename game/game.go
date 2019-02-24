@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"math/rand"
+	"runtime"
 	"time"
 
 	"github.com/hajimehoshi/ebiten"
@@ -76,15 +77,17 @@ func (g *Game) draw(screen *ebiten.Image) error {
 	g.world.Draw(screen)
 
 	if debugMode {
-		msg := fmt.Sprintf(`TPS: %0.2f, FPS: %0.2f,
-Age: %0.2f,
-Health: %d,
-Press Q to quit`,
-			ebiten.CurrentTPS(),
-			ebiten.CurrentFPS(),
+		msg := fmt.Sprintf(`Age: %0.2f
+Health: %d`,
 			g.world.egg.stats.age,
 			g.world.egg.stats.health,
 		)
+
+		if runtime.GOARCH != "js" {
+			msg = msg + `
+Press Q to quit`
+		}
+
 		ebitenutil.DebugPrint(screen, msg)
 	}
 
