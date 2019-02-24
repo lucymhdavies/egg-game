@@ -16,7 +16,8 @@ import (
 type State int
 
 const (
-	StateIdle State = iota
+	StateUnhatched State = iota
+	StateIdle
 	StateBounce
 	StateSleep
 )
@@ -72,19 +73,20 @@ func NewEgg(w *World) *Egg {
 
 func (egg *Egg) Update() error {
 
+	if egg.state == StateUnhatched {
+		// Hatching not yet implemented, so just go straight to idle
+		egg.state = StateIdle
+	}
+
 	if egg.state == StateIdle {
-		log.Debugf("Egg State: Idle")
 
 		if rand.Float64() <= bounceChance {
-			log.Debugf("BOUNCE")
 			egg.state = StateBounce
 			egg.velocity.Z += 1
 		}
 	}
 
 	if egg.state == StateBounce {
-		log.Debugf("Egg v:%v p:%v", egg.velocity.Z, egg.position.Z)
-
 		egg.position.Z += egg.velocity.Z
 
 		if egg.position.Z < 0 {
