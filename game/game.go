@@ -2,14 +2,23 @@ package game
 
 import (
 	"image/color"
+	"math/rand"
+	"time"
 
 	"github.com/hajimehoshi/ebiten"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
 	ScreenWidth  = 256
 	ScreenHeight = 384
+	logLevel     = log.DebugLevel
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+	log.SetLevel(logLevel)
+}
 
 type Game struct {
 	world *World
@@ -49,6 +58,8 @@ func (g *Game) Update(screen *ebiten.Image) error {
 }
 
 func (g *Game) update() error {
+	g.world.Update()
+
 	return nil
 }
 

@@ -45,6 +45,15 @@ func init() {
 	tileSize = w
 }
 
+func (world *World) Update() error {
+	err := world.egg.Update()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (world *World) Draw(screen *ebiten.Image) error {
 	xNum := world.Width / tileSize
 	yNum := world.Height / tileSize
