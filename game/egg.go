@@ -25,12 +25,13 @@ const (
 var (
 	op = &ebiten.DrawImageOptions{}
 
-	// TODO: change this depending on mood?
+	// TODO: change both of these depending on mood?
 	bounceChance = 0.01
+	//bounceChance   = 1.0
+	maxBounceSpeed = 0.5
 )
 
 type Egg struct {
-	//acceleration r3.Vector
 	velocity r3.Vector
 	position r3.Vector
 	size     r2.Point
@@ -41,13 +42,19 @@ type Egg struct {
 		emote  *ebiten.Image
 	}
 	name  string
+	world *World
 	state State
 }
 
 func NewEgg(w *World) *Egg {
 	e := &Egg{
-		position: r3.Vector{float64(w.Width) / 2, float64(w.Height) / 2, 0},
-		name:     "Egg",
+		position: r3.Vector{
+			float64(w.Width) / 2,
+			float64(w.Height) / 2,
+			0,
+		},
+		world: w,
+		name:  "Egg",
 	}
 
 	// Get body image
@@ -73,25 +80,48 @@ func NewEgg(w *World) *Egg {
 
 func (egg *Egg) Update() error {
 
-	if egg.state == StateUnhatched {
+	switch egg.state {
+	case StateUnhatched:
 		// Hatching not yet implemented, so just go straight to idle
 		egg.state = StateIdle
-	}
 
-	if egg.state == StateIdle {
-
+	case StateIdle:
 		if rand.Float64() <= bounceChance {
 			egg.state = StateBounce
 			egg.velocity.Z += 1
+
+			// TODO: if there's food in the world, and hungry, go towards it
+
+			// Random direction
+			egg.velocity.X = maxBounceSpeed * (rand.Float64()*2 - 1)
+			egg.velocity.Y = maxBounceSpeed * (rand.Float64()*2 - 1)
 		}
-	}
 
-	if egg.state == StateBounce {
-		egg.position.Z += egg.velocity.Z
+	case StateBounce:
+		egg.position = egg.position.Add(egg.velocity)
 
+		// Don't go outside bounds
+		if egg.position.X < egg.size.X/2+10 {
+			log.Debugf("Left Boundary")
+			egg.position.X = egg.size.X/2 + 10
+		}
+		if egg.position.Y < egg.size.Y/2+10 {
+			log.Debugf("Top Boundary")
+			egg.position.Y = egg.size.Y/2 + 10
+		}
+		if egg.position.X > float64(egg.world.Width)-egg.size.X/2-10 {
+			log.Debugf("Right Boundary")
+			egg.position.X = float64(egg.world.Width) - egg.size.X/2 - 10
+		}
+		if egg.position.Y > float64(egg.world.Height)-egg.size.Y/2-10 {
+			log.Debugf("Bottom Boundary")
+			egg.position.Y = float64(egg.world.Height) - egg.size.Y/2 - 10
+		}
+
+		// Don't go through the floor!
 		if egg.position.Z < 0 {
 			egg.position.Z = 0
-			egg.velocity.Z = 0
+			egg.velocity = r3.Vector{0, 0, 0}
 			egg.state = StateIdle
 		} else {
 			egg.velocity.Z -= 0.05

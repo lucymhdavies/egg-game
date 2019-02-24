@@ -1,11 +1,13 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
 	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -13,12 +15,16 @@ const (
 	ScreenWidth  = 256
 	ScreenHeight = 256
 	//ScreenHeight = 384 // room for the buttons later
-	logLevel = log.DebugLevel
+
+	debugMode = true
 )
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
-	log.SetLevel(logLevel)
+
+	if debugMode {
+		log.SetLevel(log.DebugLevel)
+	}
 }
 
 type Game struct {
@@ -68,6 +74,15 @@ func (g *Game) draw(screen *ebiten.Image) error {
 	screen.Fill(color.White)
 
 	g.world.Draw(screen)
+
+	if debugMode {
+		msg := fmt.Sprintf(`TPS: %0.2f, FPS: %0.2f
+Press Q to quit`,
+			ebiten.CurrentTPS(),
+			ebiten.CurrentFPS(),
+		)
+		ebitenutil.DebugPrint(screen, msg)
+	}
 
 	return nil
 }
