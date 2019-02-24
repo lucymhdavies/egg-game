@@ -9,6 +9,7 @@ import (
 
 func main() {
 	g := game.NewGame()
+	ebiten.SetRunnableInBackground(true)
 	if err := ebiten.Run(g.Update, game.ScreenWidth, game.ScreenHeight, 2, "Egg Garden"); err != nil && err != game.RegularTermination {
 		log.Fatal(err)
 	}

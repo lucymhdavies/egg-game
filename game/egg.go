@@ -30,13 +30,12 @@ var (
 	op = &ebiten.DrawImageOptions{}
 
 	// TODO: change both of these depending on mood?
-	bounceChance = 0.01
-	//bounceChance   = 1.0
+	bounceChance   = 0.01
 	maxBounceSpeed = 0.5
 
 	// How old does it have to be before it potentially dies of old age
 	// For now, hard code something really short
-	minOldAgeDeath = 10.0
+	minOldAgeDeath = 60.0
 
 	// how likely it is that old age will lower health
 	oldAgeSicknessChance = 0.1
@@ -147,7 +146,7 @@ func (egg *Egg) Update() error {
 	if egg.state == StateDead {
 		return nil
 	}
-	if egg.stats.health == 0 {
+	if egg.state != StateBounce && egg.stats.health == 0 {
 		egg.state = StateDead
 		egg.name = "DEAD"
 		return nil
@@ -161,22 +160,24 @@ func (egg *Egg) Update() error {
 		return nil
 	}
 
+	// if we've entered "old age", start randomly losing health
+	// if our health is already 0, do nothing, otherwise we'll get integer underflow
+	if egg.stats.age > minOldAgeDeath && egg.stats.health > 0 {
+		// the older the egg is beyond its "minimum old age" age,
+		// the more health it should lose
+		sicknessChance := (oldAgeSicknessChance * (egg.stats.age - minOldAgeDeath)) / minOldAgeDeath
+
+		if sicknessChance > 1.0 || rand.Float64() <= sicknessChance {
+			egg.stats.health--
+		}
+	}
+
 	switch egg.state {
 	case StateUnhatched:
 		// Hatching not yet implemented, so just go straight to idle
 		egg.state = StateIdle
 
 	case StateIdle:
-		if egg.stats.age > minOldAgeDeath {
-			// the older the egg is beyond its "minimum old age" age,
-			// the more health it should lose
-			sicknessChance := oldAgeSicknessChance * (egg.stats.age - minOldAgeDeath)
-
-			if sicknessChance > 1.0 || rand.Float64() <= sicknessChance {
-				egg.stats.health--
-			}
-		}
-
 		if rand.Float64() <= bounceChance {
 			egg.state = StateBounce
 			egg.velocity.Z += 1
@@ -193,19 +194,15 @@ func (egg *Egg) Update() error {
 
 		// Don't go outside bounds
 		if egg.position.X < egg.size.X/2+10 {
-			log.Debugf("Left Boundary")
 			egg.position.X = egg.size.X/2 + 10
 		}
 		if egg.position.Y < egg.size.Y/2+10 {
-			log.Debugf("Top Boundary")
 			egg.position.Y = egg.size.Y/2 + 10
 		}
 		if egg.position.X > float64(egg.world.Width)-egg.size.X/2-10 {
-			log.Debugf("Right Boundary")
 			egg.position.X = float64(egg.world.Width) - egg.size.X/2 - 10
 		}
 		if egg.position.Y > float64(egg.world.Height)-egg.size.Y/2-10 {
-			log.Debugf("Bottom Boundary")
 			egg.position.Y = float64(egg.world.Height) - egg.size.Y/2 - 10
 		}
 
