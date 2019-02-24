@@ -4,7 +4,7 @@ IN USE: https://taarna23.itch.io/1000-egg-sprites
 
 # Eyes
 
-TODO: https://opengameart.org/content/vector-eye-collection-01
+IN USE: https://opengameart.org/content/vector-eye-collection-01
 
 # Emotes
 

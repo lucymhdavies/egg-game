@@ -8,6 +8,7 @@ import (
 	"github.com/golang/geo/r2"
 	"github.com/golang/geo/r3"
 	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/lucymhdavies/egg-game/resources/sprites"
@@ -29,6 +30,12 @@ var (
 	bounceChance = 0.01
 	//bounceChance   = 1.0
 	maxBounceSpeed = 0.5
+
+	names = []string{
+		"Aleggsendra", "Deggniel", "Eggberta", "Egglan", "Egglizabeth",
+		"Eggsmerelda", "Gordeggn", "Heleggna", "Llywelegg", "Sabreggna",
+		"Sveggn",
+	}
 )
 
 type Egg struct {
@@ -36,10 +43,11 @@ type Egg struct {
 	position r3.Vector
 	size     r2.Point
 	images   struct {
-		body   *ebiten.Image
-		eyes   *ebiten.Image
-		shadow *ebiten.Image
-		emote  *ebiten.Image
+		body     *ebiten.Image
+		eyeBall  *ebiten.Image
+		eyePupil *ebiten.Image
+		shadow   *ebiten.Image
+		emote    *ebiten.Image
 	}
 	name  string
 	world *World
@@ -54,8 +62,9 @@ func NewEgg(w *World) *Egg {
 			0,
 		},
 		world: w,
-		name:  "Egg",
 	}
+
+	e.name = names[rand.Intn(len(names))]
 
 	// Get body image
 	img, _, err := image.Decode(bytes.NewReader(sprites.EggBody_png))
@@ -74,6 +83,22 @@ func NewEgg(w *World) *Egg {
 	op.ColorM.Scale(0, 0, 0, 0.5)
 	shadowImgRaw.DrawImage(shadowImg, op)
 	e.images.shadow = shadowImgRaw
+
+	// Eyes
+	img, _, err = image.Decode(bytes.NewReader(sprites.Eyeball_png))
+	if err != nil {
+		log.Fatal(err)
+	}
+	eyeBallImg, _ := ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+	e.images.eyeBall = eyeBallImg
+
+	// Pupils
+	img, _, err = image.Decode(bytes.NewReader(sprites.EyePupil_png))
+	if err != nil {
+		log.Fatal(err)
+	}
+	eyePupilImg, _ := ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+	e.images.eyePupil = eyePupilImg
 
 	return e
 }
@@ -148,5 +173,44 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 	op.ColorM.Reset()
 	op.GeoM.Translate(egg.position.X-egg.size.X/2, egg.position.Y-egg.size.Y/2-egg.position.Z)
 	screen.DrawImage(egg.images.body, op)
+
+	// Draw eyes
+	op.GeoM.Reset()
+	op.ColorM.Reset()
+
+	// Left eyeball
+	eyeSizeX, eyeSizeY := egg.images.eyeBall.Size()
+	pupilSizeX, pupilSizeY := egg.images.eyePupil.Size()
+	op.GeoM.Translate(
+		egg.position.X-float64(eyeSizeX)-2,
+		egg.position.Y-float64(eyeSizeY)-egg.position.Z,
+	)
+	screen.DrawImage(egg.images.eyeBall, op)
+	// TODO: move these, depending on direction of movement and/or mouse position
+	// Have them either centred, or at a max distance from centre of eye
+	op.GeoM.Translate(
+		float64(eyeSizeX)/2-float64(pupilSizeX)/2,
+		float64(eyeSizeY)/2-float64(pupilSizeY)/2,
+	)
+	screen.DrawImage(egg.images.eyePupil, op)
+
+	// Right eyeball
+	op.GeoM.Reset()
+	op.GeoM.Translate(
+		egg.position.X+2,
+		egg.position.Y-float64(eyeSizeY)-egg.position.Z,
+	)
+	screen.DrawImage(egg.images.eyeBall, op)
+	// TODO: as above
+	op.GeoM.Translate(
+		float64(eyeSizeX)/2-float64(pupilSizeX)/2,
+		float64(eyeSizeY)/2-float64(pupilSizeY)/2,
+	)
+	screen.DrawImage(egg.images.eyePupil, op)
+
+	// Draw name?
+	// Need to figure out how to center the text
+	ebitenutil.DebugPrintAt(screen, egg.name, int(egg.position.X-egg.size.X/2), int(egg.position.Y-egg.position.Z-egg.size.Y/2-20))
+
 	return nil
 }
