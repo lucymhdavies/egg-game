@@ -235,47 +235,60 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 	}
 	screen.DrawImage(egg.images.shadow, op)
 
-	// Draw body
-	op.GeoM.Reset()
-	op.ColorM.Reset()
-	op.GeoM.Translate(egg.position.X-egg.size.X/2, egg.position.Y-egg.size.Y/2-egg.position.Z)
-	if egg.state == StateDead {
-		op.ColorM.Scale(255, 255, 255, 0.5)
-	}
-	screen.DrawImage(egg.images.body, op)
+	//
+	// Draw body offscreen
+	//
 
-	// Draw eyes
-	op.GeoM.Reset()
+	// Create a temporary image to draw body + body parts
+	bodyImg, _ := ebiten.NewImageFromImage(egg.images.body, ebiten.FilterDefault)
 
-	// Left eyeball
+	// Sizes for body parts
+	// TODO: maybe store these in egg struct?
 	eyeSizeX, eyeSizeY := egg.images.eyeBall.Size()
 	pupilSizeX, pupilSizeY := egg.images.eyePupil.Size()
+
+	// Left eyeball
+	op.GeoM.Reset()
+	op.ColorM.Reset()
 	op.GeoM.Translate(
-		egg.position.X-float64(eyeSizeX)-2,
-		egg.position.Y-float64(eyeSizeY)-egg.position.Z,
+		egg.size.X/2-float64(eyeSizeX)-2,
+		egg.size.Y/2-float64(eyeSizeY),
 	)
-	screen.DrawImage(egg.images.eyeBall, op)
+	bodyImg.DrawImage(egg.images.eyeBall, op)
 	// TODO: move these, depending on direction of movement and/or mouse position
 	// Have them either centred, or at a max distance from centre of eye
+	// i.e. add:
+	// +egg.velocity.Y*5
+	// Doesn't quite look right though
 	op.GeoM.Translate(
 		float64(eyeSizeX)/2-float64(pupilSizeX)/2,
 		float64(eyeSizeY)/2-float64(pupilSizeY)/2,
 	)
-	screen.DrawImage(egg.images.eyePupil, op)
+	bodyImg.DrawImage(egg.images.eyePupil, op)
 
 	// Right eyeball
 	op.GeoM.Reset()
 	op.GeoM.Translate(
-		egg.position.X+2,
-		egg.position.Y-float64(eyeSizeY)-egg.position.Z,
+		egg.size.X/2+2,
+		egg.size.Y/2-float64(eyeSizeY),
 	)
-	screen.DrawImage(egg.images.eyeBall, op)
+	bodyImg.DrawImage(egg.images.eyeBall, op)
 	// TODO: as above
 	op.GeoM.Translate(
 		float64(eyeSizeX)/2-float64(pupilSizeX)/2,
 		float64(eyeSizeY)/2-float64(pupilSizeY)/2,
 	)
-	screen.DrawImage(egg.images.eyePupil, op)
+	bodyImg.DrawImage(egg.images.eyePupil, op)
+
+	// Draw our temporary body image
+	op.GeoM.Reset()
+	op.ColorM.Reset()
+
+	op.GeoM.Translate(egg.position.X-egg.size.X/2, egg.position.Y-egg.size.Y/2-egg.position.Z)
+	if egg.state == StateDead {
+		op.ColorM.Scale(255, 255, 255, 0.5)
+	}
+	screen.DrawImage(bodyImg, op)
 
 	// Draw name?
 	// Need to figure out how to center the text
