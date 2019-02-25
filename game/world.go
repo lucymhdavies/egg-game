@@ -3,7 +3,9 @@ package game
 import (
 	"bytes"
 	"image"
-	"log"
+	"math"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/hajimehoshi/ebiten"
 
@@ -19,14 +21,25 @@ type World struct {
 	Width  int
 	Height int
 
+	// Number of tiles needed to fill world
+	xNum int
+	yNum int
+
 	egg *Egg
 }
 
-func NewWorld(size int) *World {
+func NewWorld(sizeX, sizeY int) *World {
+	xNum := int(math.Ceil(float64(sizeX) / float64(tileSize)))
+	yNum := int(math.Ceil(float64(sizeY) / float64(tileSize)))
+
 	w := &World{
-		Width:  size,
-		Height: size,
+		Width:  sizeX,
+		Height: sizeY,
+		xNum:   xNum,
+		yNum:   yNum,
 	}
+
+	log.Debugf("World size: %v, %v", sizeX, sizeY)
 
 	// Create egg
 	w.egg = NewEgg(w)
@@ -55,12 +68,10 @@ func (world *World) Update() error {
 }
 
 func (world *World) Draw(screen *ebiten.Image) error {
-	xNum := world.Width / tileSize
-	yNum := world.Height / tileSize
 
-	for i := 0; i < xNum*yNum; i++ {
+	for i := 0; i < world.xNum*world.yNum; i++ {
 		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64((i%xNum)*tileSize), float64((i/xNum)*tileSize))
+		op.GeoM.Translate(float64((i%world.xNum)*tileSize), float64((i/world.xNum)*tileSize))
 
 		screen.DrawImage(imageGameBG, op)
 	}

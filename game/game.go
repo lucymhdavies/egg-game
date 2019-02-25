@@ -12,7 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const (
+var (
 	ScreenWidth  = 256
 	ScreenHeight = 256
 	//ScreenHeight = 384 // room for the buttons later
@@ -35,7 +35,7 @@ type Game struct {
 
 func NewGame() *Game {
 	return &Game{
-		world: NewWorld(256),
+		world: NewWorld(ScreenWidth, ScreenHeight),
 	}
 }
 
