@@ -56,8 +56,7 @@ type Button struct {
 
 // IsMouseOver returns whether or not the mouse cursor is currently
 // over the button
-func (button *Button) IsMouseOver() bool {
-	x, y := ebiten.CursorPosition()
+func (button *Button) IsMouseOver(x, y int) bool {
 
 	return (x >= button.position.X &&
 		x <= button.position.X+button.size.W &&
@@ -70,12 +69,15 @@ func (button *Button) Update() error {
 		return nil
 	}
 
-	// TODO: detect click / tap, etc, then call arbitrary function
+	//
+	// Handle Mouse Clicks
+	//
 
 	// if mouse button pressed, and cursor is over button...
 	// change state to pressed
 	// else, state is normal
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && button.IsMouseOver() {
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) &&
+		button.IsMouseOver(ebiten.CursorPosition()) {
 		button.pushed = true
 	} else {
 		button.pushed = false
@@ -83,7 +85,28 @@ func (button *Button) Update() error {
 
 	// if mouse button is JUST unpressed, and cursor is over button...
 	// do button action
-	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) && button.IsMouseOver() {
+	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) &&
+		button.IsMouseOver(ebiten.CursorPosition()) {
+		button.action(button.ui.game.world)
+	}
+
+	//
+	// Handle Touches
+	//
+
+	touches := ebiten.TouchIDs()
+	if touches != nil && len(touches) == 1 {
+		// As long as there is precisely one touch
+		// i.e. don't try to handle multi-touch for now
+
+		if button.IsMouseOver(ebiten.TouchPosition(touches[0])) {
+			button.pushed = true
+		} else {
+			button.pushed = false
+		}
+	}
+	if touches == nil && button.pushed == true {
+		button.pushed = false
 		button.action(button.ui.game.world)
 	}
 
