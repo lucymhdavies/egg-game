@@ -9,6 +9,7 @@ IN USE: https://opengameart.org/content/vector-eye-collection-01
 # Emotes
 
 TODO: https://kicked-in-teeth.itch.io/emoticons
+TODO: https://opengameart.org/content/emotes-pack
 
 # Tiles
 
@@ -19,3 +20,8 @@ TODO: https://opengameart.org/content/browserquest-sprites-and-tiles
 # UI
 
 TODO: https://opengameart.org/content/ui-pack
+TODO: https://opengameart.org/content/ui-pack-rpg-extension
+
+# Other
+
+TODO: https://opengameart.org/content/pixel-art-food-pack-by-inkmammoth

@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	// TODO: common resolutions, e.g. iPhone size
 	ScreenWidth  = 256
 	ScreenHeight = 256
 	//ScreenHeight = 384 // room for the buttons later
@@ -34,9 +35,14 @@ type Game struct {
 }
 
 func NewGame() *Game {
-	return &Game{
+	g := &Game{
 		world: NewWorld(ScreenWidth, ScreenHeight),
 	}
+	g.input = Input{
+		game: g,
+	}
+
+	return g
 }
 
 func (g *Game) Update(screen *ebiten.Image) error {
@@ -86,6 +92,12 @@ Health: %d`,
 		if runtime.GOARCH != "js" {
 			msg = msg + `
 Press Q to quit`
+
+			if g.world.egg.state == StateDead {
+				msg = msg + `
+Press R to respawn
+`
+			}
 		}
 
 		ebitenutil.DebugPrint(screen, msg)

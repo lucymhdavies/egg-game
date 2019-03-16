@@ -83,3 +83,14 @@ func (world *World) Draw(screen *ebiten.Image) error {
 
 	return nil
 }
+
+func (world *World) ReplaceEgg() error {
+
+	if world.egg.state == StateDead {
+		world.egg.state = StateRespawning
+	} else {
+		world.egg = NewEgg(world)
+	}
+
+	return nil
+}

@@ -21,6 +21,7 @@ const (
 	StateIdle
 	StateBounce
 	StateDead
+	StateRespawning
 	StateSick  // Unused. Something like, if its health is low
 	StateEat   // Unused
 	StateSleep // Unused
@@ -35,15 +36,15 @@ var (
 
 	// How old does it have to be before it potentially dies of old age
 	// For now, hard code something really short
-	minOldAgeDeath = 60.0
+	minOldAgeDeath = 1.0
 
 	// how likely it is that old age will lower health
 	oldAgeSicknessChance = 0.1
 
 	names = []string{
-		"Aleggsendra", "Deggniel", "Eggberta", "Egglan", "Egglizabeth",
+		"Aleggsandra", "Deggniel", "Eggberta", "Egglan", "Egglizabeth",
 		"Eggsmerelda", "Gordeggn", "Heleggna", "Llywelegg", "Sabreggna",
-		"Sveggn",
+		"Sveggn", "Eggsy",
 	}
 )
 
@@ -69,6 +70,10 @@ type Egg struct {
 		age float64
 		// Once it gets to health 0, it dies
 		health uint8
+
+		// Is this one of those creepy eggs?
+		// Not sure what would trigger creepiness in eggs, but we shall see
+		creepy bool
 
 		//
 		// Unused below, so far
@@ -100,9 +105,15 @@ func NewEgg(w *World) *Egg {
 	// Set default stats
 	e.stats.health = 255
 
+	// TODO: random chance of being a creepy egg
+	//e.stats.creepy = true
+
 	//
 	// TODO: all this sprite loading stuff should be in init()
 	//
+
+	op.GeoM.Reset()
+	op.ColorM.Reset()
 
 	// Get body image
 	img, _, err := image.Decode(bytes.NewReader(sprites.EggBody_png))
@@ -146,18 +157,22 @@ func (egg *Egg) Update() error {
 	if egg.state == StateDead {
 		return nil
 	}
-	if egg.state != StateBounce && egg.stats.health == 0 {
-		egg.state = StateDead
-		egg.name = "DEAD"
+
+	var deltaTime float64
+	if ebiten.CurrentTPS() > 0 {
+		deltaTime = 1 / ebiten.CurrentTPS()
+	} else {
 		return nil
 	}
 
-	if ebiten.CurrentTPS() > 0 {
+	if egg.state != StateRespawning {
+		if egg.state != StateBounce && egg.stats.health == 0 {
+			egg.state = StateDead
+			egg.name = "DEAD"
+			return nil
+		}
 		// Age the egg by deltatime
-		deltaTime := 1 / ebiten.CurrentTPS()
 		egg.stats.age += deltaTime
-	} else {
-		return nil
 	}
 
 	// if we've entered "old age", start randomly losing health
@@ -212,7 +227,16 @@ func (egg *Egg) Update() error {
 			egg.velocity = r3.Vector{0, 0, 0}
 			egg.state = StateIdle
 		} else {
-			egg.velocity.Z -= 0.05
+			egg.velocity.Z -= 3 * deltaTime
+		}
+
+	case StateRespawning:
+		// TODO: maybe accellerate, rather than just linearly going up
+		// Also make these variables up top, rather than Magic Numbers
+		egg.position.Z += 30 * deltaTime
+
+		if egg.position.Z >= 30 {
+			egg.world.ReplaceEgg()
 		}
 	}
 
@@ -255,16 +279,19 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 		egg.size.Y/2-float64(eyeSizeY),
 	)
 	bodyImg.DrawImage(egg.images.eyeBall, op)
-	// TODO: move these, depending on direction of movement and/or mouse position
-	// Have them either centred, or at a max distance from centre of eye
-	// i.e. add:
-	// +egg.velocity.Y*5
-	// Doesn't quite look right though
-	op.GeoM.Translate(
-		float64(eyeSizeX)/2-float64(pupilSizeX)/2,
-		float64(eyeSizeY)/2-float64(pupilSizeY)/2,
-	)
-	bodyImg.DrawImage(egg.images.eyePupil, op)
+
+	if !egg.stats.creepy {
+		// TODO: move these, depending on direction of movement and/or mouse position
+		// Have them either centred, or at a max distance from centre of eye
+		// i.e. add:
+		// +egg.velocity.Y*5
+		// Doesn't quite look right though
+		op.GeoM.Translate(
+			float64(eyeSizeX)/2-float64(pupilSizeX)/2,
+			float64(eyeSizeY)/2-float64(pupilSizeY)/2,
+		)
+		bodyImg.DrawImage(egg.images.eyePupil, op)
+	}
 
 	// Right eyeball
 	op.GeoM.Reset()
@@ -273,12 +300,15 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 		egg.size.Y/2-float64(eyeSizeY),
 	)
 	bodyImg.DrawImage(egg.images.eyeBall, op)
-	// TODO: as above
-	op.GeoM.Translate(
-		float64(eyeSizeX)/2-float64(pupilSizeX)/2,
-		float64(eyeSizeY)/2-float64(pupilSizeY)/2,
-	)
-	bodyImg.DrawImage(egg.images.eyePupil, op)
+
+	if !egg.stats.creepy {
+		// TODO: as above
+		op.GeoM.Translate(
+			float64(eyeSizeX)/2-float64(pupilSizeX)/2,
+			float64(eyeSizeY)/2-float64(pupilSizeY)/2,
+		)
+		bodyImg.DrawImage(egg.images.eyePupil, op)
+	}
 
 	// Draw our temporary body image
 	op.GeoM.Reset()
@@ -288,11 +318,18 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 	if egg.state == StateDead {
 		op.ColorM.Scale(255, 255, 255, 0.5)
 	}
+	if egg.state == StateRespawning {
+		// TODO: scale transparency, inversely proportional to position.Z
+		op.ColorM.Scale(255, 255, 255, 0.5-egg.position.Z/30)
+	}
+
 	screen.DrawImage(bodyImg, op)
 
 	// Draw name?
 	// Need to figure out how to center the text
-	ebitenutil.DebugPrintAt(screen, egg.name, int(egg.position.X-egg.size.X/2), int(egg.position.Y-egg.position.Z-egg.size.Y/2-20))
+	if egg.state != StateRespawning {
+		ebitenutil.DebugPrintAt(screen, egg.name, int(egg.position.X-egg.size.X/2), int(egg.position.Y-egg.position.Z-egg.size.Y/2-20))
+	}
 
 	return nil
 }
