@@ -20,10 +20,6 @@ func (i *Input) Update() error {
 		if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
 			return RegularTermination
 		}
-
-		if inpututil.IsKeyJustPressed(ebiten.KeyR) {
-			i.game.world.ReplaceEgg()
-		}
 	}
 
 	return nil

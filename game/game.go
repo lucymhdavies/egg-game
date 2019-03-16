@@ -31,16 +31,18 @@ func init() {
 
 type Game struct {
 	world *World
-	input Input
+	input *Input
+	ui    *UI
 }
 
 func NewGame() *Game {
 	g := &Game{
 		world: NewWorld(ScreenWidth, ScreenHeight),
 	}
-	g.input = Input{
+	g.input = &Input{ // TODO: NewInput?
 		game: g,
 	}
+	g.ui = NewUI(g)
 
 	return g
 }
@@ -50,6 +52,11 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	// https://github.com/hajimehoshi/ebiten/blob/master/examples/blocks/blocks/scenemanager.go
 
 	err := g.input.Update()
+	if err != nil {
+		return err
+	}
+
+	err = g.ui.Update()
 	if err != nil {
 		return err
 	}
@@ -81,6 +88,7 @@ func (g *Game) draw(screen *ebiten.Image) error {
 	screen.Fill(color.White)
 
 	g.world.Draw(screen)
+	g.ui.Draw(screen)
 
 	if debugMode {
 		msg := fmt.Sprintf(`Age: %0.2f
@@ -92,12 +100,6 @@ Health: %d`,
 		if runtime.GOARCH != "js" {
 			msg = msg + `
 Press Q to quit`
-
-			if g.world.egg.state == StateDead {
-				msg = msg + `
-Press R to respawn
-`
-			}
 		}
 
 		ebitenutil.DebugPrint(screen, msg)

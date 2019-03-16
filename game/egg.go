@@ -50,7 +50,7 @@ var (
 
 type Egg struct {
 	velocity r3.Vector
-	position r3.Vector
+	position r3.Vector // refers to midpoint of egg
 	size     r2.Point
 	images   struct {
 		body     *ebiten.Image
@@ -326,7 +326,7 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 	screen.DrawImage(bodyImg, op)
 
 	// Draw name?
-	// Need to figure out how to center the text
+	// TODO: Need to figure out how to center the text
 	if egg.state != StateRespawning {
 		ebitenutil.DebugPrintAt(screen, egg.name, int(egg.position.X-egg.size.X/2), int(egg.position.Y-egg.position.Z-egg.size.Y/2-20))
 	}
