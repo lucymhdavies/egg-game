@@ -20,6 +20,11 @@ type ButtonFunc func(w *World)
 var defaultButtonFunc ButtonFunc = func(w *World) {
 }
 
+var (
+	// Keep track of whether there have ever been touches
+	haveBeenTouches bool
+)
+
 type Button struct {
 	// Pointer back to parent UI
 	ui *UI
@@ -76,17 +81,23 @@ func (button *Button) Update() error {
 	// if mouse button pressed, and cursor is over button...
 	// change state to pressed
 	// else, state is normal
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) &&
-		button.IsMouseOver(ebiten.CursorPosition()) {
-		button.pushed = true
-	} else {
-		button.pushed = false
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		if button.IsMouseOver(ebiten.CursorPosition()) {
+			// Only press the button if we clicked while the mouse was over
+			// don't press the button if we clicked elsewhere, then dragged
+			if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+				button.pushed = true
+			}
+		} else {
+			button.pushed = false
+		}
 	}
 
-	// if mouse button is JUST unpressed, and cursor is over button...
+	// if mouse button is JUST unpressed, and cursor is still over button...
 	// do button action
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) &&
-		button.IsMouseOver(ebiten.CursorPosition()) {
+		button.IsMouseOver(ebiten.CursorPosition()) &&
+		button.pushed == true {
 		button.action(button.ui.game.world)
 	}
 
@@ -95,19 +106,40 @@ func (button *Button) Update() error {
 	//
 
 	touches := ebiten.TouchIDs()
+
+	// if we are not touching the button...
+	// and the button is in the pushed state...
+	// and we have previously touched the screen...
+	if (touches == nil || len(touches) == 0) && button.pushed == true && haveBeenTouches {
+		// then we must have just released a touch which was over the button
+		button.action(button.ui.game.world)
+	}
 	if touches != nil && len(touches) == 1 {
+
 		// As long as there is precisely one touch
 		// i.e. don't try to handle multi-touch for now
 
 		if button.IsMouseOver(ebiten.TouchPosition(touches[0])) {
-			button.pushed = true
+			// Similar logic to the mouse click
+			// As long as the touch started this frame...
+			if !haveBeenTouches {
+				button.pushed = true
+			}
 		} else {
 			button.pushed = false
 		}
+
+		// Register that we have initited a touch this frame
+		haveBeenTouches = true
 	}
-	if touches == nil && button.pushed == true {
+
+	//
+	// Reset button on no mouse click or touch
+	//
+
+	if !ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && len(touches) == 0 {
 		button.pushed = false
-		button.action(button.ui.game.world)
+		haveBeenTouches = false
 	}
 
 	return nil
