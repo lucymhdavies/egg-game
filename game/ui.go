@@ -23,9 +23,9 @@ type UI struct {
 func (ui *UI) Update() error {
 
 	// For testing...
-	if ui.game.world.egg.state == StateDead {
-		ui.uiElements[0].visible = true
-	}
+	//if ui.game.world.egg.state == StateDead {
+	ui.uiElements[0].visible = true
+	//}
 
 	// TODO: sort by Z-index, updating higher elements first
 
@@ -56,7 +56,7 @@ func NewUI(g *Game) *UI {
 	}
 
 	// For testing, draw an example button
-	b := NewButton(ui)
+	b := NewButton(ui, 100, 34)
 
 	// Center button horizontally, and stick at bottom of screen
 	b.position.X = ScreenWidth/2 - b.size.W/2

@@ -28,7 +28,6 @@ const (
 )
 
 var (
-	op = &ebiten.DrawImageOptions{}
 
 	// TODO: change both of these depending on mood?
 	bounceChance   = 0.01
@@ -127,7 +126,7 @@ func NewEgg(w *World) *Egg {
 
 	// Shadow = body, but squashed vertically
 	shadowImgRaw, _ := ebiten.NewImage(sizeX, sizeY/4, ebiten.FilterDefault)
-	shadowImg, _ := ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+	shadowImg, _ := ebiten.NewImageFromImage(img, ebiten.FilterDefault) // TODO: just use bodyImg
 	op.GeoM.Scale(1, 0.25)
 	op.ColorM.Scale(0, 0, 0, 0.5)
 	shadowImgRaw.DrawImage(shadowImg, op)
