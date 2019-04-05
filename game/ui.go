@@ -23,9 +23,9 @@ type UI struct {
 func (ui *UI) Update() error {
 
 	// For testing...
-	//if ui.game.world.egg.state == StateDead {
-	ui.uiElements[0].visible = true
-	//}
+	if ui.game.world.egg.state == StateDead {
+		ui.uiElements[0].visible = true
+	}
 
 	// TODO: sort by Z-index, updating higher elements first
 

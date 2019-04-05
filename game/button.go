@@ -46,6 +46,8 @@ type Button struct {
 	}
 
 	pushed bool
+	// how much shorter is a pushed button compared to a normal button
+	pushDepth int
 
 	text      string
 	textColor color.RGBA
@@ -159,7 +161,7 @@ func (button *Button) Draw(screen *ebiten.Image) error {
 	if !button.pushed {
 		// if button not pushed, then move everything up 4 pixels
 		// to show the side at the bottom
-		buttonY -= 4.0
+		buttonY -= float64(button.pushDepth)
 	}
 
 	// Move drawing to top corner
@@ -182,7 +184,7 @@ func (button *Button) Draw(screen *ebiten.Image) error {
 	}
 
 	if button.pushed {
-		textPos.Y += 4
+		textPos.Y += button.pushDepth
 	}
 
 	// TODO: use something else to draw text, but for now this is fine
@@ -215,8 +217,10 @@ func NewButton(ui *UI, width, height int) *Button {
 	op.GeoM.Reset()
 	op.ColorM.Reset()
 
+	b.pushDepth = 4 // TODO: get this atuomatically from the images?
+
 	b.images.normal = NewBox(width, height, "ButtonBlueOutline").Image
-	b.images.pushed = NewBox(width, height-4, "ButtonBlueOutlinePushed").Image
+	b.images.pushed = NewBox(width, height-b.pushDepth, "ButtonBlueOutlinePushed").Image
 
 	return b
 }
