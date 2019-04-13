@@ -3,13 +3,13 @@ package game
 import (
 	"bytes"
 	"image"
+	"log"
 	"math/rand"
 
 	"github.com/golang/geo/r2"
 	"github.com/golang/geo/r3"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/lucymhdavies/egg-game/resources/sprites"
 )

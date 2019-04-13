@@ -9,7 +9,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -25,9 +24,6 @@ var (
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
-	if debugMode {
-		log.SetLevel(log.DebugLevel)
-	}
 }
 
 type Game struct {

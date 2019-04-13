@@ -1,9 +1,8 @@
 package main
 
 import (
+	"log"
 	"runtime"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/lucymhdavies/egg-game/game"

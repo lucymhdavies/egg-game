@@ -3,9 +3,8 @@ package game
 import (
 	"bytes"
 	"image"
+	"log"
 	"math"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/hajimehoshi/ebiten"
 
@@ -38,8 +37,6 @@ func NewWorld(sizeX, sizeY int) *World {
 		xNum:   xNum,
 		yNum:   yNum,
 	}
-
-	log.Debugf("World size: %v, %v", sizeX, sizeY)
 
 	// Create egg
 	w.egg = NewEgg(w)

@@ -3,10 +3,10 @@ package game
 import (
 	"bytes"
 	"image"
+	"log"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/lucymhdavies/egg-game/resources/sprites"
-	log "github.com/sirupsen/logrus"
 )
 
 // Box is a generic box to be drawn on screen
