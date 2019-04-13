@@ -13,7 +13,7 @@ type UI struct {
 	// All UI elements
 	// For now, we only have buttons, so have this as a slice of buttons
 	// TODO: In future, have a UIElements interface
-	uiElements []*Button
+	uiElements map[string]UIElement
 
 	// TODO: need some way of referring to SPECIFIC buttons from other packages?
 	// Or refer to game state within UI
@@ -24,7 +24,7 @@ func (ui *UI) Update() error {
 
 	// For testing...
 	if ui.game.world.egg.state == StateDead {
-		ui.uiElements[0].visible = true
+		ui.uiElements["respawnButton"].SetVisible(true)
 	}
 
 	// TODO: sort by Z-index, updating higher elements first
@@ -52,7 +52,8 @@ func (ui *UI) Draw(screen *ebiten.Image) error {
 
 func NewUI(g *Game) *UI {
 	ui := &UI{
-		game: g,
+		game:       g,
+		uiElements: make(map[string]UIElement),
 	}
 
 	// For testing, draw an example button
@@ -68,7 +69,7 @@ func NewUI(g *Game) *UI {
 		b.visible = false
 	}
 
-	ui.uiElements = append(ui.uiElements, b)
+	ui.uiElements["respawnButton"] = b
 
 	return ui
 }

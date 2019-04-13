@@ -201,6 +201,13 @@ func (button *Button) Draw(screen *ebiten.Image) error {
 	return nil
 }
 
+func (button *Button) IsVisible() bool {
+	return button.visible
+}
+func (button *Button) SetVisible(v bool) {
+	button.visible = v
+}
+
 // TODO, functional params
 // https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
 func NewButton(ui *UI, width, height int) *Button {
