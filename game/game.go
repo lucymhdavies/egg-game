@@ -18,7 +18,8 @@ var (
 	ScreenHeight = 256
 	//ScreenHeight = 384 // room for the buttons later
 
-	debugMode = true
+	// TODO: enable with <game> -d
+	debugMode = false
 )
 
 func init() {

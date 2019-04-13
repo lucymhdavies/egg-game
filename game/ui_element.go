@@ -1,6 +1,9 @@
 package game
 
-import "github.com/hajimehoshi/ebiten"
+import (
+	"github.com/golang/geo/r3"
+	"github.com/hajimehoshi/ebiten"
+)
 
 // Generic UI Element interface
 
@@ -9,4 +12,6 @@ type UIElement interface {
 	Draw(*ebiten.Image) error
 	IsVisible() bool
 	SetVisible(bool)
+	Position() r3.Vector
+	Game() *Game
 }

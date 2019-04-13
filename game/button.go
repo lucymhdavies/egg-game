@@ -3,6 +3,7 @@ package game
 import (
 	"image/color"
 
+	"github.com/golang/geo/r3"
 	"github.com/hajimehoshi/bitmapfont"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/inpututil"
@@ -22,7 +23,10 @@ var (
 
 type Button struct {
 	// Pointer back to parent UI
-	ui *UI
+	parent UIElement
+
+	// Pointer back to the game
+	game *Game
 
 	// Where it is on screen
 	// TODO: maybe just use an r3.Vector, given we need floats anyway
@@ -60,6 +64,8 @@ type Button struct {
 // over the button
 func (button *Button) IsMouseOver(x, y int) bool {
 
+	// TODO: Detect whether there's anything in front of the button
+
 	return (x >= button.position.X &&
 		x <= button.position.X+button.size.W &&
 		y >= button.position.Y &&
@@ -70,6 +76,10 @@ func (button *Button) Update() error {
 	if !button.visible {
 		return nil
 	}
+
+	// TODO: if UI has handled a click event this frame already
+	// return nil
+	// Maybe?
 
 	// TODO: use parent ui as a wrapper around raw ebiten events?
 	// Might help with tests
@@ -98,7 +108,9 @@ func (button *Button) Update() error {
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) &&
 		button.IsMouseOver(ebiten.CursorPosition()) &&
 		button.pushed == true {
-		button.action(button.ui.game.world)
+
+		// TODO: give it a better pointer back to the world
+		button.action(button.game.world)
 	}
 
 	//
@@ -112,7 +124,8 @@ func (button *Button) Update() error {
 	// and we have previously touched the screen...
 	if (touches == nil || len(touches) == 0) && button.pushed == true && haveBeenTouches {
 		// then we must have just released a touch which was over the button
-		button.action(button.ui.game.world)
+		// TODO: give it a better pointer back to the world
+		button.action(button.game.world)
 	}
 	if touches != nil && len(touches) == 1 {
 
@@ -165,6 +178,7 @@ func (button *Button) Draw(screen *ebiten.Image) error {
 	}
 
 	// Move drawing to top corner
+	op.GeoM.Translate(button.parent.Position().X, button.parent.Position().Y)
 	op.GeoM.Translate(buttonX, buttonY)
 
 	if !button.pushed {
@@ -182,6 +196,8 @@ func (button *Button) Draw(screen *ebiten.Image) error {
 		button.position.X + (button.size.W / 2) - (textWidth / 2),
 		button.position.Y + 15,
 	}
+	textPos.X += int(button.parent.Position().X)
+	textPos.Y += int(button.parent.Position().Y)
 
 	if button.pushed {
 		textPos.Y += button.pushDepth
@@ -208,22 +224,30 @@ func (button *Button) SetVisible(v bool) {
 	button.visible = v
 }
 
+func (button *Button) Game() *Game {
+	return button.game
+}
+
+func (button *Button) Position() r3.Vector {
+	return r3.Vector{
+		X: float64(button.position.X),
+		Y: float64(button.position.Y),
+		Z: float64(button.position.Z),
+	}
+}
+
 // TODO, functional params
 // https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
-func NewButton(ui *UI, width, height int) *Button {
+func NewButton(p UIElement, width, height int) *Button {
 	b := &Button{
-		ui:     ui,
+		parent: p,
 		action: defaultButtonFunc,
+		game:   p.Game(),
 	}
 
 	// Default button size, if unspecified
 	b.size.W = width
 	b.size.H = height
-
-	// Reset drawing functions
-	op.GeoM.Reset()
-	op.ColorM.Reset()
-
 	b.pushDepth = 4 // TODO: get this atuomatically from the images?
 
 	b.images.normal = NewBox(width, height, "ButtonBlueOutline").Image

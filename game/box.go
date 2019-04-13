@@ -46,6 +46,7 @@ func NewBox(width, height int, name string) *Box {
 
 	// Reset drawing functions
 	op.GeoM.Reset()
+	op.ColorM.Reset()
 
 	// Create a new empty image
 	img, err := ebiten.NewImage(width, height, ebiten.FilterDefault)
