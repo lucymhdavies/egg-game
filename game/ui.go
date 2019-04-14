@@ -166,6 +166,7 @@ func (ui *UI) createStatsWindow() *Window {
 	b.text = "Respawn"
 	b.textColor = color.RGBA{0, 0, 0, 255}
 	b.action = func(w *World) {
+		ui.uiElements["statsWindow"].SetVisible(false)
 		w.ReplaceEgg()
 	}
 	b.visible = true
