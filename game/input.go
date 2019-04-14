@@ -21,10 +21,11 @@ func (i *Input) Update() error {
 			return RegularTermination
 		}
 
-		if inpututil.IsKeyJustPressed(ebiten.KeyI) {
-			v := i.game.ui.uiElements["statsWindow"].IsVisible()
-			i.game.ui.uiElements["statsWindow"].SetVisible(!v)
-		}
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyI) {
+		v := i.game.ui.uiElements["statsWindow"].IsVisible()
+		i.game.ui.uiElements["statsWindow"].SetVisible(!v)
 	}
 
 	return nil
