@@ -48,4 +48,11 @@ EOF
 		prefix=$(basename $f .png)
 		file2byteslice -input $f -output ${prefix}_${map_name}_map.go -package sprites -var ${map_name} -varindex "\"${prefix}\""
 	done
+
+	# Now combine them all into one file
+	cat *_${map_name}_map.go | grep -v "package sprites" >> ${map_name}_map.go
+	rm *_${map_name}_map.go
+
+	# This kinda works for now, but honestly, it's probably worth me just
+	# rolling my own at this point
 done
