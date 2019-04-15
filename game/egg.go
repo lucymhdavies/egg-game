@@ -114,8 +114,16 @@ func NewEgg(w *World) *Egg {
 	op.GeoM.Reset()
 	op.ColorM.Reset()
 
+	// Pick a body image at random
+	var keys []string
+	for k := range sprites.Eggs {
+		keys = append(keys, k)
+	}
+	n := rand.Int() % len(keys)
+	key := keys[n]
+
 	// Get body image
-	img, _, err := image.Decode(bytes.NewReader(sprites.EggBody_png))
+	img, _, err := image.Decode(bytes.NewReader(sprites.Eggs[key]))
 	if err != nil {
 		log.Fatal(err)
 	}
