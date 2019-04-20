@@ -1,9 +1,8 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
-	"math"
-	"os"
 
 	"github.com/golang/geo/r3"
 	"github.com/hajimehoshi/ebiten"
@@ -121,81 +120,17 @@ func (ui *UI) createStatsWindow() *Window {
 	w.text = "Stats"
 	w.textColor = color.RGBA{0, 0, 0, 255}
 
-	// TODO: for testing
-	w.visible = false
-
-	//
-	// Child Element: Another Window
-	//
-
-	// TODO
-	// test a child element
-
-	w2 := NewWindow(w, w.size.W-20, w.size.H-100)
-	w2.position.X = 10
-	w2.position.Y = 20
-
-	// Z-Index
-	w2.position.Z = 20
-
-	w2.text = "TEST"
-	w2.textColor = color.RGBA{0, 0, 0, 255}
-
-	// TODO: for testing
-	w2.visible = true
-
-	w.uiElements = append(w.uiElements, w2)
-
-	//
-	// Child Element, a button
-	//
-
-	bWidth := int(math.Min(100.0, (float64(w.size.W)/2 - 20.0)))
-
-	// For testing, draw an example button
-	b := NewButton(w, bWidth, 34)
-
-	// Center button horizontally, and stick at bottom of window
-	//b.position.X = w.size.W/2 - b.size.W/2
-	b.position.X = 10
-	b.position.Y = w.size.H - b.size.H - 5
-
-	// Z-Index
-	b.position.Z = 10
-
-	b.text = "Respawn"
-	b.textColor = color.RGBA{0, 0, 0, 255}
-	b.action = func(w *World) {
-		ui.uiElements["statsWindow"].SetVisible(false)
-		w.ReplaceEgg()
+	ageLabel := NewLabel(w, "Age:", "Age: %v")
+	ageLabel.textColor = color.RGBA{0, 0, 0, 255}
+	ageLabel.SetVisible(true)
+	ageLabel.centered = false
+	ageLabel.position.X = 10
+	ageLabel.position.Y = standardFont.Metrics().Height.Ceil()
+	ageLabel.updateFunc = func(w *World) {
+		ageLabel.text = fmt.Sprintf(ageLabel.textFormat, int(w.egg.stats.age))
 	}
-	b.visible = true
 
-	w.uiElements = append(w.uiElements, b)
-
-	//
-	// Child Element, another button
-	//
-
-	// For testing, draw an example button
-	b2 := NewButton(w, bWidth, 34)
-
-	// Center button horizontally, and stick at bottom of window
-	//b.position.X = w.size.W/2 - b.size.W/2
-	b2.position.X = w.size.W - b2.size.W - 10
-	b2.position.Y = w.size.H - b2.size.H - 5
-
-	// Z-Index
-	b2.position.Z = 10
-
-	b2.text = "Quit"
-	b2.textColor = color.RGBA{0, 0, 0, 255}
-	b2.action = func(w *World) {
-		os.Exit(0)
-	}
-	b2.visible = true
-
-	w.uiElements = append(w.uiElements, b2)
+	w.uiElements = append(w.uiElements, ageLabel)
 
 	return w
 }

@@ -4,7 +4,6 @@ import (
 	"image/color"
 
 	"github.com/golang/geo/r3"
-	"github.com/hajimehoshi/bitmapfont"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/inpututil"
 	"github.com/hajimehoshi/ebiten/text"
@@ -207,7 +206,7 @@ func (button *Button) Draw(screen *ebiten.Image) error {
 	text.Draw(screen,
 		button.text,
 		// TODO: use some other font face
-		bitmapfont.Gothic12r,
+		standardFont,
 
 		textPos.X, textPos.Y,
 

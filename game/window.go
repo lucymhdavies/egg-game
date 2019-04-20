@@ -4,7 +4,6 @@ import (
 	"image/color"
 
 	"github.com/golang/geo/r3"
-	"github.com/hajimehoshi/bitmapfont"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/text"
 	// TODO: use some other font than this in future
@@ -29,6 +28,7 @@ type Window struct {
 	size struct {
 		W, H int
 	}
+	padding int
 
 	visible bool
 
@@ -61,7 +61,7 @@ func (w *Window) Draw(screen *ebiten.Image) error {
 	op.GeoM.Reset()
 	op.ColorM.Reset()
 
-	// TODO: translate to parent X,Y
+	// translate to parent X,Y
 	op.GeoM.Translate(w.parent.Position().X, w.parent.Position().Y)
 	op.GeoM.Translate(float64(w.position.X), float64(w.position.Y))
 	op.ColorM.Scale(1, 1, 1, 0.8)
@@ -74,7 +74,7 @@ func (w *Window) Draw(screen *ebiten.Image) error {
 	// see: ebiten/examples/blocks/blocks/font.go for how to do this better
 	textPos := struct{ X, Y int }{
 		w.position.X + (w.size.W / 2) - (textWidth / 2),
-		w.position.Y + 15,
+		w.position.Y + w.padding + standardFont.Metrics().Ascent.Ceil(),
 	}
 	textPos.X += int(w.parent.Position().X)
 	textPos.Y += int(w.parent.Position().Y)
@@ -83,7 +83,7 @@ func (w *Window) Draw(screen *ebiten.Image) error {
 	text.Draw(screen,
 		w.text,
 		// TODO: use some other font face
-		bitmapfont.Gothic12r,
+		standardFont,
 
 		textPos.X, textPos.Y,
 
@@ -132,6 +132,9 @@ func NewWindow(p UIElement, width, height int) *Window {
 
 	// TODO: proper window image
 	w.image = NewBox(width, height, "grey_panel").Image
+
+	// TODO: do something clever, getting it automatically from image top
+	w.padding = 3
 
 	return w
 }
