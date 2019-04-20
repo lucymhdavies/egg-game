@@ -271,7 +271,14 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 	//
 
 	// Create a temporary image to draw body + body parts
-	bodyImg, _ := ebiten.NewImageFromImage(egg.images.body, ebiten.FilterDefault)
+	op.GeoM.Reset()
+	op.ColorM.Reset()
+	bodyImg, err := ebiten.NewImage(int(egg.size.X), int(egg.size.Y), ebiten.FilterDefault)
+	if err != nil {
+		// TODO: better error handling needed here
+		log.Fatal(err)
+	}
+	bodyImg.DrawImage(egg.images.body, op)
 
 	// Sizes for body parts
 	// TODO: maybe store these in egg struct?
