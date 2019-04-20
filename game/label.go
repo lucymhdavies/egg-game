@@ -9,11 +9,6 @@ import (
 	// TODO: use some other font than this in future
 )
 
-type LabelFunc func(w *World)
-
-var defaultLabelFunc LabelFunc = func(w *World) {
-}
-
 type Label struct {
 	// Pointer back to parent UIElement
 	parent UIElement
@@ -44,7 +39,7 @@ type Label struct {
 	textFormat string
 	textColor  color.RGBA
 
-	updateFunc LabelFunc
+	updateFunc WorldFunc
 }
 
 func (l *Label) Update() error {
@@ -132,7 +127,7 @@ func NewLabel(p UIElement, text, textFormat string) *Label {
 		game:       p.Game(),
 		text:       text,
 		textFormat: textFormat,
-		updateFunc: defaultLabelFunc,
+		updateFunc: defaultWorldFunc,
 	}
 
 	return l

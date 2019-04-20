@@ -91,3 +91,9 @@ func (world *World) ReplaceEgg() error {
 
 	return nil
 }
+
+// WorldFunc is a generic function which interacts with the world
+type WorldFunc func(w *World)
+
+var defaultWorldFunc WorldFunc = func(w *World) {
+}

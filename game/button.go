@@ -10,11 +10,6 @@ import (
 	// TODO: use some other font than this in future
 )
 
-type ButtonFunc func(w *World)
-
-var defaultButtonFunc ButtonFunc = func(w *World) {
-}
-
 var (
 	// Keep track of whether there have ever been touches
 	haveBeenTouches bool
@@ -56,7 +51,7 @@ type Button struct {
 	textColor color.RGBA
 
 	// Thing that happens when you push the button
-	action ButtonFunc
+	action WorldFunc
 }
 
 // IsMouseOver returns whether or not the mouse cursor is currently
@@ -240,7 +235,7 @@ func (button *Button) Position() r3.Vector {
 func NewButton(p UIElement, width, height int) *Button {
 	b := &Button{
 		parent: p,
-		action: defaultButtonFunc,
+		action: defaultWorldFunc,
 		game:   p.Game(),
 	}
 

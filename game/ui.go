@@ -110,9 +110,14 @@ func (ui *UI) createRespawnButton() *Button {
 
 func (ui *UI) createStatsWindow() *Window {
 
+	//
+	// The Window itself
+	//
+
 	w := NewWindow(ui, ScreenWidth-20, ScreenHeight-20)
 	w.position.X = 10
 	w.position.Y = 10
+	//w.SetVisible(true)
 
 	// Z-Index
 	w.position.Z = 20
@@ -120,10 +125,16 @@ func (ui *UI) createStatsWindow() *Window {
 	w.text = "Stats"
 	w.textColor = color.RGBA{0, 0, 0, 255}
 
-	ageLabel := NewLabel(w, "Age:", "Age: %v")
+	//
+	// Label to display Age
+	//
+
+	ageLabel := NewLabel(w, "Age", "Age: %v")
 	ageLabel.textColor = color.RGBA{0, 0, 0, 255}
 	ageLabel.SetVisible(true)
 	ageLabel.centered = false
+	ageLabel.size.W = w.size.W - 20
+	ageLabel.size.H = standardFont.Metrics().Height.Ceil()
 	ageLabel.position.X = 10
 	ageLabel.position.Y = standardFont.Metrics().Height.Ceil()
 	ageLabel.updateFunc = func(w *World) {
@@ -131,6 +142,39 @@ func (ui *UI) createStatsWindow() *Window {
 	}
 
 	w.uiElements = append(w.uiElements, ageLabel)
+
+	//
+	// Label to display Health
+	//
+
+	healthLabel := NewLabel(w, "Health", "Health: %v")
+	healthLabel.textColor = color.RGBA{0, 0, 0, 255}
+	healthLabel.SetVisible(true)
+	healthLabel.centered = false
+	healthLabel.size.W = w.size.W - 20
+	healthLabel.size.H = standardFont.Metrics().Height.Ceil()
+	healthLabel.position.X = 10
+	healthLabel.position.Y = ageLabel.position.Y + ageLabel.size.H + 5
+	healthLabel.updateFunc = func(w *World) {
+		healthLabel.text = fmt.Sprintf(healthLabel.textFormat, int(w.egg.stats.health))
+	}
+
+	w.uiElements = append(w.uiElements, healthLabel)
+
+	//
+	// Bar to display Health
+	//
+
+	healthBar := NewBar(w, w.size.W-20, 18, "green")
+	healthBar.SetVisible(true)
+	healthBar.position.X = 10
+	healthBar.position.Y = healthLabel.position.Y + healthLabel.size.H + 5
+	healthBar.max = 255.0
+	healthBar.updateFunc = func(w *World) {
+		healthBar.value = float64(w.egg.stats.health)
+	}
+
+	w.uiElements = append(w.uiElements, healthBar)
 
 	return w
 }
