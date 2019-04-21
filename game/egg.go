@@ -35,7 +35,7 @@ var (
 
 	// How old does it have to be before it potentially dies of old age
 	// For now, hard code something really short
-	minOldAgeDeath = 1.0
+	minOldAgeDeath = 30.0
 
 	// how likely it is that old age will lower health
 	oldAgeSicknessChance = 0.1
