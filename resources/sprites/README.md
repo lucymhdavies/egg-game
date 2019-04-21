@@ -51,8 +51,8 @@ Available here:
 
 * [https://opengameart.org/content/ui-pack](https://opengameart.org/content/ui-pack)
 * [https://opengameart.org/content/ui-pack-rpg-extension](https://opengameart.org/content/ui-pack-rpg-extension)
+* [https://opengameart.org/content/onscreen-controls-8-styles](https://opengameart.org/content/onscreen-controls-8-styles)
 
 [CC0 License](https://creativecommons.org/publicdomain/zero/1.0/)
 
 Placeholder for now
-

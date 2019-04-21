@@ -1,20 +1,37 @@
 package game
 
 import (
+	"bytes"
+	"image"
 	"image/color"
+	"log"
 
 	"github.com/golang/geo/r3"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/inpututil"
 	"github.com/hajimehoshi/ebiten/text"
+	"github.com/lucymhdavies/egg-game/resources/sprites"
 	// TODO: use some other font than this in future
 )
 
-var (
-	// Keep track of whether there have ever been touches
-	haveBeenTouches bool
-)
+// ButtonStyle determins what kind of button this is
+type ButtonStyle struct {
+	box    bool
+	images struct {
+		normal,
+		pushed string
+	}
+}
 
+var defaultButtonStyle = ButtonStyle{
+	box: true,
+	images: struct{ normal, pushed string }{
+		normal: "ButtonBlueOutline",
+		pushed: "ButtonBlueOutlinePushed",
+	},
+}
+
+// Button is a clickable button which does an action when clicked
 type Button struct {
 	// Pointer back to parent UI
 	parent UIElement
@@ -243,7 +260,7 @@ func (button *Button) Position() r3.Vector {
 
 // TODO, functional params
 // https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
-func NewButton(p UIElement, width, height int) *Button {
+func NewButton(p UIElement, width, height int, style ButtonStyle) *Button {
 	b := &Button{
 		parent: p,
 		action: defaultWorldFunc,
@@ -253,12 +270,26 @@ func NewButton(p UIElement, width, height int) *Button {
 	// Default button size, if unspecified
 	b.size.W = width
 	b.size.H = height
-	b.pushDepth = 4 // TODO: get this atuomatically from the images?
-	b.padding.W = 5
-	b.padding.H = 5
 
-	b.images.normal = NewBox(width, height, "ButtonBlueOutline").Image
-	b.images.pushed = NewBox(width, height-b.pushDepth, "ButtonBlueOutlinePushed").Image
+	if style.box {
+		b.pushDepth = 4 // TODO: get this atuomatically from the images?
+		b.padding.W = 5
+		b.padding.H = 5
+		b.images.normal = NewBox(width, height, style.images.normal).Image
+		b.images.pushed = NewBox(width, height-b.pushDepth, style.images.pushed).Image
+	} else {
+		img, _, err := image.Decode(bytes.NewReader(sprites.Icons[style.images.normal]))
+		if err != nil {
+			log.Fatal(err)
+		}
+		b.images.normal, _ = ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+
+		img, _, err = image.Decode(bytes.NewReader(sprites.Icons[style.images.pushed]))
+		if err != nil {
+			log.Fatal(err)
+		}
+		b.images.pushed, _ = ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+	}
 
 	return b
 }

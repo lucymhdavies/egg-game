@@ -90,7 +90,7 @@ func NewUI(g *Game) *UI {
 
 // TODO: move this to a different file?
 func (ui *UI) createRespawnButton() *Button {
-	b := NewButton(ui, 100, 34)
+	b := NewButton(ui, 100, 34, defaultButtonStyle)
 
 	// Center button horizontally, and stick at bottom of screen
 	b.position.X = ScreenWidth/2 - b.size.W/2
@@ -115,9 +115,9 @@ func (ui *UI) createStatsWindow() *Window {
 	// The Window itself
 	//
 
-	// Add a (32+14) buffer at the bottom, so as not to overlap the icons
+	// Add a 36px buffer at the bottom, so as not to overlap the icons
 	// on the bottom row of the screen
-	w := NewWindow(ui, ScreenWidth-20, ScreenHeight-20-(32+14))
+	w := NewWindow(ui, ScreenWidth-20, ScreenHeight-20-36)
 	w.position.X = 10
 	w.position.Y = 10
 	//w.SetVisible(true)
@@ -184,12 +184,20 @@ func (ui *UI) createStatsWindow() *Window {
 	//
 
 	// 32x32, for icon, then 10x14, for button border
-	hideStatsButton := NewButton(w, 32+10, 32+14)
+	hideStatsButton := NewButton(w, 36, 36,
+		ButtonStyle{
+			box: false,
+			images: struct{ normal, pushed string }{
+				normal: "red_boxCross",
+				pushed: "grey_box",
+			},
+		},
+	)
 	hideStatsButton.SetVisible(true)
 
 	// Bottom right of window (5px padding)
 	hideStatsButton.position.X = w.size.W - hideStatsButton.size.W - 5
-	hideStatsButton.position.Y = w.size.H - hideStatsButton.size.H - 1
+	hideStatsButton.position.Y = w.size.H - hideStatsButton.size.H - 5
 	hideStatsButton.action = func(world *World) {
 		w.SetVisible(false)
 	}
@@ -201,11 +209,19 @@ func (ui *UI) createStatsWindow() *Window {
 
 // TODO: move this to a different file?
 func (ui *UI) createStatsIcon() *Button {
-	b := NewButton(ui, 32+10, 32+14)
+	b := NewButton(ui, 36, 36,
+		ButtonStyle{
+			box: false,
+			images: struct{ normal, pushed string }{
+				normal: "transparentDark_star", // TODO: dedicated info icon
+				pushed: "transparentLight_star",
+			},
+		},
+	)
 
 	// Center button horizontally, and stick at bottom of screen
-	b.position.X = ScreenWidth - b.size.W - 5
-	b.position.Y = ScreenHeight - b.size.H - 1
+	b.position.X = ScreenWidth - b.size.W - 10
+	b.position.Y = ScreenHeight - b.size.H - 5
 	b.visible = true
 
 	// Z-Index
@@ -213,8 +229,11 @@ func (ui *UI) createStatsIcon() *Button {
 
 	b.action = func(world *World) {
 		window := ui.uiElements["statsWindow"]
-		window.SetVisible(true)
+		window.SetVisible(!window.IsVisible())
 	}
+	// TODO: while statsWindow is visible, then this button should display as pushed?
+	// Means it's gonna need an UpdateFunc as well as an Action Func
+	// Or maybe some third Highlighted state?
 
 	return b
 }
