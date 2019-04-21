@@ -179,31 +179,6 @@ func (ui *UI) createStatsWindow() *Window {
 
 	w.uiElements = append(w.uiElements, healthBar)
 
-	//
-	// Close Button
-	//
-
-	// 32x32, for icon, then 10x14, for button border
-	hideStatsButton := NewButton(w, 36, 36,
-		ButtonStyle{
-			box: false,
-			images: struct{ normal, pushed string }{
-				normal: "red_boxCross",
-				pushed: "grey_box",
-			},
-		},
-	)
-	hideStatsButton.SetVisible(true)
-
-	// Bottom right of window (5px padding)
-	hideStatsButton.position.X = w.size.W - hideStatsButton.size.W - 5
-	hideStatsButton.position.Y = w.size.H - hideStatsButton.size.H - 5
-	hideStatsButton.action = func(world *World) {
-		w.SetVisible(false)
-	}
-
-	w.uiElements = append(w.uiElements, hideStatsButton)
-
 	return w
 }
 
