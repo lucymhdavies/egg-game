@@ -26,12 +26,23 @@ type Button struct {
 	// TODO: maybe just use an r3.Vector, given we need floats anyway
 	position struct {
 		// Position on screen
+		// This refers to position of button when PUSHED
+		// TODO: be consistent with size below...
 		X, Y int
 
 		// Z-index. Keep stuff on top of other stuff
 		Z int
 	}
 	size struct {
+		// Size of button
+		// This refers to size of button when UNPUSHED
+		// TODO: be consistant with position above...
+		W, H int
+	}
+	padding struct {
+		// How much fo the image is border, and how much is interior
+		// This refers to padding when buton is PUSHED
+		// (when unpushed, add pushDepth to H)
 		W, H int
 	}
 
@@ -243,6 +254,8 @@ func NewButton(p UIElement, width, height int) *Button {
 	b.size.W = width
 	b.size.H = height
 	b.pushDepth = 4 // TODO: get this atuomatically from the images?
+	b.padding.W = 5
+	b.padding.H = 5
 
 	b.images.normal = NewBox(width, height, "ButtonBlueOutline").Image
 	b.images.pushed = NewBox(width, height-b.pushDepth, "ButtonBlueOutlinePushed").Image

@@ -77,9 +77,11 @@ func NewUI(g *Game) *UI {
 
 	ui.uiElements["respawnButton"] = ui.createRespawnButton()
 	ui.uiElements["statsWindow"] = ui.createStatsWindow()
+	ui.uiElements["statsIcon"] = ui.createStatsIcon()
 
 	// TODO: sort by Z-index, showing lower elements first
 	// for now, just do this manually
+	ui.zSortedUIElements = append(ui.zSortedUIElements, ui.uiElements["statsIcon"])
 	ui.zSortedUIElements = append(ui.zSortedUIElements, ui.uiElements["respawnButton"])
 	ui.zSortedUIElements = append(ui.zSortedUIElements, ui.uiElements["statsWindow"])
 
@@ -88,7 +90,6 @@ func NewUI(g *Game) *UI {
 
 // TODO: move this to a different file?
 func (ui *UI) createRespawnButton() *Button {
-	// For testing, draw an example button
 	b := NewButton(ui, 100, 34)
 
 	// Center button horizontally, and stick at bottom of screen
@@ -114,7 +115,9 @@ func (ui *UI) createStatsWindow() *Window {
 	// The Window itself
 	//
 
-	w := NewWindow(ui, ScreenWidth-20, ScreenHeight-20)
+	// Add a (32+14) buffer at the bottom, so as not to overlap the icons
+	// on the bottom row of the screen
+	w := NewWindow(ui, ScreenWidth-20, ScreenHeight-20-(32+14))
 	w.position.X = 10
 	w.position.Y = 10
 	//w.SetVisible(true)
@@ -176,5 +179,42 @@ func (ui *UI) createStatsWindow() *Window {
 
 	w.uiElements = append(w.uiElements, healthBar)
 
+	//
+	// Close Button
+	//
+
+	// 32x32, for icon, then 10x14, for button border
+	hideStatsButton := NewButton(w, 32+10, 32+14)
+	hideStatsButton.SetVisible(true)
+
+	// Bottom right of window (5px padding)
+	hideStatsButton.position.X = w.size.W - hideStatsButton.size.W - 5
+	hideStatsButton.position.Y = w.size.H - hideStatsButton.size.H - 1
+	hideStatsButton.action = func(world *World) {
+		w.SetVisible(false)
+	}
+
+	w.uiElements = append(w.uiElements, hideStatsButton)
+
 	return w
+}
+
+// TODO: move this to a different file?
+func (ui *UI) createStatsIcon() *Button {
+	b := NewButton(ui, 32+10, 32+14)
+
+	// Center button horizontally, and stick at bottom of screen
+	b.position.X = ScreenWidth - b.size.W - 5
+	b.position.Y = ScreenHeight - b.size.H - 1
+	b.visible = true
+
+	// Z-Index
+	b.position.Z = 10
+
+	b.action = func(world *World) {
+		window := ui.uiElements["statsWindow"]
+		window.SetVisible(true)
+	}
+
+	return b
 }
