@@ -26,8 +26,11 @@ func (ui *UI) Update() error {
 
 	// For testing...
 	if ui.game.world.egg.state == StateDead {
+		ui.uiElements["statsWindow"].SetVisible(false)
+		ui.uiElements["statsIcon"].SetVisible(false)
 		ui.uiElements["respawnButton"].SetVisible(true)
 	} else {
+		ui.uiElements["statsIcon"].SetVisible(true)
 		ui.uiElements["respawnButton"].SetVisible(false)
 	}
 
@@ -132,7 +135,7 @@ func (ui *UI) createStatsWindow() *Window {
 	// Label to display Age
 	//
 
-	ageLabel := NewLabel(w, "Age", "Age: %v")
+	ageLabel := NewLabel(w, "Age", "Age: %d")
 	ageLabel.textColor = color.RGBA{0, 0, 0, 255}
 	ageLabel.SetVisible(true)
 	ageLabel.centered = false
@@ -141,45 +144,80 @@ func (ui *UI) createStatsWindow() *Window {
 	ageLabel.position.X = 10
 	ageLabel.position.Y = standardFont.Metrics().Height.Ceil()
 	ageLabel.updateFunc = func(w *World) {
-		ageLabel.text = fmt.Sprintf(ageLabel.textFormat, int(w.egg.stats.age))
+		v, _ := w.egg.GetStat("age")
+		ageLabel.text = fmt.Sprintf(ageLabel.textFormat, int(v))
 	}
 
 	w.uiElements = append(w.uiElements, ageLabel)
 
 	//
-	// Label to display Health
+	// Health Bar + Label
 	//
 
-	healthLabel := NewLabel(w, "Health", "Health: %v")
-	healthLabel.textColor = color.RGBA{0, 0, 0, 255}
-	healthLabel.SetVisible(true)
-	healthLabel.centered = false
-	healthLabel.size.W = w.size.W - 20
-	healthLabel.size.H = standardFont.Metrics().Height.Ceil()
-	healthLabel.position.X = 10
-	healthLabel.position.Y = ageLabel.position.Y + ageLabel.size.H + 5
-	healthLabel.updateFunc = func(w *World) {
-		healthLabel.text = fmt.Sprintf(healthLabel.textFormat, int(w.egg.stats.health))
-	}
-
-	w.uiElements = append(w.uiElements, healthLabel)
+	healthBar, healthLabel := ui.createLabeledBar(
+		w,
+		"Health",
+		struct{ left, right, top, bottom int }{
+			left: 10, right: 10,
+			top: ageLabel.position.Y + ageLabel.size.H + 5,
+		},
+	)
+	w.uiElements = append(w.uiElements, healthBar, healthLabel)
 
 	//
-	// Bar to display Health
+	// Hunger Bar + Label
 	//
 
-	healthBar := NewBar(w, w.size.W-20, 18, "green")
-	healthBar.SetVisible(true)
-	healthBar.position.X = 10
-	healthBar.position.Y = healthLabel.position.Y + healthLabel.size.H + 5
-	healthBar.max = 255.0
-	healthBar.updateFunc = func(w *World) {
-		healthBar.value = float64(w.egg.stats.health)
-	}
-
-	w.uiElements = append(w.uiElements, healthBar)
+	hungerBar, hungerLabel := ui.createLabeledBar(
+		w,
+		"Hunger",
+		struct{ left, right, top, bottom int }{
+			left: 10, right: 10,
+			top: healthBar.position.Y + healthBar.size.H + 5,
+		},
+	)
+	w.uiElements = append(w.uiElements, hungerBar, hungerLabel)
 
 	return w
+}
+
+// TODO: this could be part of Layout?
+// Create a generic bar with label
+// TODO: functional options, you know, as I need to do everywhere else...
+// TODO: allow any numeric type for value
+// TODO: allow any parent (not just window)
+//   possible solutions:
+//   - give UIElement a Size() function
+func (ui UI) createLabeledBar(w *Window, name string,
+	offset struct{ left, right, top, bottom int }) (*Bar, *Label) {
+
+	paddingX := (offset.left + offset.right)
+
+	label := NewLabel(w, name, name+": %d")
+	label.textColor = color.RGBA{0, 0, 0, 255}
+	label.SetVisible(true)
+	label.centered = false
+	label.size.W = w.size.W - paddingX
+	label.size.H = standardFont.Metrics().Height.Ceil()
+	label.position.X = offset.left
+	label.position.Y = offset.top
+
+	label.updateFunc = func(w *World) {
+		v, _ := w.egg.GetStat(name)
+		label.text = fmt.Sprintf(label.textFormat, int(v))
+	}
+
+	bar := NewBar(w, w.size.W-paddingX, 18, "green")
+	bar.SetVisible(true)
+	bar.position.X = offset.left
+	bar.position.Y = label.position.Y + label.size.H + 5
+	bar.max = 255.0
+
+	bar.updateFunc = func(w *World) {
+		bar.value, _ = w.egg.GetStat(name)
+	}
+
+	return bar, label
 }
 
 // TODO: move this to a different file?

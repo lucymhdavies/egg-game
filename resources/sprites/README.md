@@ -56,3 +56,16 @@ Available here:
 [CC0 License](https://creativecommons.org/publicdomain/zero/1.0/)
 
 Placeholder for now
+
+
+## Food
+
+By [thekingphoenix](https://opengameart.org/users/thekingphoenix)
+
+Downloaded from [http://opengameart.org](http://opengameart.org)
+
+Available here: [https://opengameart.org/content/icons-food](https://opengameart.org/content/icons-food)
+
+[CC0 License](https://creativecommons.org/publicdomain/zero/1.0/)
+
+Placeholder for now

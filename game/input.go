@@ -28,5 +28,10 @@ func (i *Input) Update() error {
 		i.game.ui.uiElements["statsWindow"].SetVisible(!v)
 	}
 
+	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
+		//if ebiten.IsKeyPressed(ebiten.KeyF) {
+		i.game.world.AddFood(foodCherry)
+	}
+
 	return nil
 }
