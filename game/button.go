@@ -74,6 +74,12 @@ type Button struct {
 	}
 
 	pushed bool
+
+	// have there been any touches on the screen while we've been around?
+	// keep track of this separately to whether the buttton is pushed, as if a
+	// touch was initiated outside the button, then the button should not be pushed
+	haveBeenTouches bool
+
 	// how much shorter is a pushed button compared to a normal button
 	pushDepth int
 
@@ -146,7 +152,7 @@ func (button *Button) Update() error {
 	// if we are not touching the button...
 	// and the button is in the pushed state...
 	// and we have previously touched the screen...
-	if (touches == nil || len(touches) == 0) && button.pushed == true && haveBeenTouches {
+	if (touches == nil || len(touches) == 0) && button.pushed == true && button.haveBeenTouches {
 		// then we must have just released a touch which was over the button
 		// TODO: give it a better pointer back to the world
 		button.action(button.game.world)
@@ -159,7 +165,7 @@ func (button *Button) Update() error {
 		if button.IsMouseOver(ebiten.TouchPosition(touches[0])) {
 			// Similar logic to the mouse click
 			// As long as the touch started this frame...
-			if !haveBeenTouches {
+			if !button.haveBeenTouches {
 				button.pushed = true
 			}
 		} else {
@@ -167,7 +173,7 @@ func (button *Button) Update() error {
 		}
 
 		// Register that we have initited a touch this frame
-		haveBeenTouches = true
+		button.haveBeenTouches = true
 	}
 
 	//
@@ -176,7 +182,7 @@ func (button *Button) Update() error {
 
 	if !ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && len(touches) == 0 {
 		button.pushed = false
-		haveBeenTouches = false
+		button.haveBeenTouches = false
 	}
 
 	return nil
