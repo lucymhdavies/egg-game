@@ -17,6 +17,7 @@ import (
 var (
 	imageGameBG *ebiten.Image
 	tileSize    int
+	maxFood     = 50
 )
 
 type World struct {
@@ -139,6 +140,11 @@ func (world *World) ReplaceEgg() error {
 }
 
 func (world *World) AddFood(foodType FoodType) error {
+
+	if len(world.food) >= maxFood {
+		return nil
+	}
+
 	f := NewFood(world, foodType)
 	world.food = append(world.food, f)
 
@@ -158,19 +164,36 @@ func (world *World) NearestFood(v r3.Vector) *Food {
 		return nil
 	}
 
-	// TODO: return nearest
-	// for now, just return the first one
-	return world.food[0]
+	// Initialise with nearest
+	var nearestFood *Food
+	var minDistance float64
+
+	for i, food := range world.food {
+		vecFromEggToFood := food.position.Sub(world.egg.position)
+		distance := vecFromEggToFood.Norm()
+
+		// if we're looking at the first food
+		// or we've found a new nearest food
+		if i == 0 || distance < minDistance {
+			minDistance = distance
+			nearestFood = food
+		}
+	}
+
+	return nearestFood
 }
 
-// RemoveFood returns a specified Food from the world
+// RemoveFood removes a specified Food from the world
 func (world *World) RemoveFood(f *Food) {
-	// TODO: remove specified food from world.food
-	// figure out which one it is, then get its index
-	foodIndex := 0
+	var foodIndex int
+	for i, food := range world.food {
+		if f == food {
+			foodIndex = i
+			break
+		}
+	}
 
-	world.food[foodIndex] = world.food[len(world.food)-1]
-	world.food = world.food[:len(world.food)-1]
+	world.food = append(world.food[:foodIndex], world.food[foodIndex+1:]...)
 }
 
 // WorldFunc is a generic function which interacts with the world
