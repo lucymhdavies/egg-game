@@ -7,7 +7,6 @@ import (
 	"math"
 	"sort"
 
-	"github.com/golang/geo/r2"
 	"github.com/golang/geo/r3"
 	"github.com/hajimehoshi/ebiten"
 
@@ -25,7 +24,7 @@ type World struct {
 	Height int
 
 	// Don't let anything enter the padding area
-	padding r2.Point
+	padding Padding
 
 	// Number of tiles needed to fill world
 	xNum int
@@ -45,7 +44,7 @@ func NewWorld(sizeX, sizeY int) *World {
 	w := &World{
 		Width:   sizeX,
 		Height:  sizeY,
-		padding: r2.Point{X: 10.0, Y: 10.0},
+		padding: Padding{Top: 10, Bottom: 10, Left: 10, Right: 10},
 
 		xNum: xNum,
 		yNum: yNum,
@@ -82,6 +81,10 @@ func (world *World) Update() error {
 	}
 
 	return nil
+}
+
+func (world *World) Padding() Padding {
+	return world.padding
 }
 
 func (world *World) Draw(screen *ebiten.Image) error {

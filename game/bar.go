@@ -27,7 +27,8 @@ type Bar struct {
 		// Z-index. Keep stuff on top of other stuff
 		Z int
 	}
-	size struct {
+	padding Padding
+	size    struct {
 		W, H int
 	}
 
@@ -109,6 +110,10 @@ func (b *Bar) Position() r3.Vector {
 		Y: float64(b.position.Y),
 		Z: float64(b.position.Z),
 	}
+}
+
+func (b *Bar) Padding() Padding {
+	return b.padding
 }
 
 func (b *Bar) Update() error {

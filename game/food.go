@@ -26,15 +26,15 @@ func NewFood(w *World, ft FoodType) *Food {
 
 	// Random position in world
 	xRand := rand.Float64()*
-		(float64(w.Width)- //      width of world
-			2*w.padding.X- //      minus world padding
-			float64(sizeX)/2) + // then center on image
-		w.padding.X // and add back the world padding
+		float64((w.Width)- //      width of world
+			(w.Padding().Left+w.Padding().Right)- //      minus world padding
+			(sizeX)/2) + // then center on image
+		float64(w.Padding().Left) // and add back the world padding
 	yRand := rand.Float64()*
-		(float64(w.Height)- //     height of world
-			2*w.padding.Y- //      minus world padding
-			float64(sizeY)/2) + // then center on image
-		w.padding.Y // and add back the world padding
+		float64((w.Height)- //     height of world
+			(w.Padding().Top+w.Padding().Bottom)- //      minus world padding
+			(sizeY)/2) + // then center on image
+		float64(w.Padding().Top) // and add back the world padding
 
 	f := &Food{
 		position: r3.Vector{

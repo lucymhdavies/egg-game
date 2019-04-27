@@ -1,11 +1,8 @@
 package game
 
 import (
-	"image/color"
-
 	"github.com/golang/geo/r3"
 	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/text"
 	// TODO: use some other font than this in future
 )
 
@@ -25,15 +22,12 @@ type Window struct {
 		// Z-index. Keep stuff on top of other stuff
 		Z int
 	}
-	size struct {
+	padding Padding
+	size    struct {
 		W, H int
 	}
-	padding int
 
 	visible bool
-
-	text      string
-	textColor color.RGBA
 
 	image *ebiten.Image
 
@@ -67,29 +61,6 @@ func (w *Window) Draw(screen *ebiten.Image) error {
 	op.ColorM.Scale(1, 1, 1, 0.8)
 	screen.DrawImage(w.image, op)
 
-	// TODO: center this text in the button
-	// need to know how big the text is
-	// for now, we know it's width is 5 px per letter
-	textWidth := len(w.text) * 5
-	// see: ebiten/examples/blocks/blocks/font.go for how to do this better
-	textPos := struct{ X, Y int }{
-		w.position.X + (w.size.W / 2) - (textWidth / 2),
-		w.position.Y + w.padding + standardFont.Metrics().Ascent.Ceil(),
-	}
-	textPos.X += int(w.parent.Position().X)
-	textPos.Y += int(w.parent.Position().Y)
-
-	// TODO: use something else to draw text, but for now this is fine
-	text.Draw(screen,
-		w.text,
-		// TODO: use some other font face
-		standardFont,
-
-		textPos.X, textPos.Y,
-
-		w.textColor,
-	)
-
 	for _, e := range w.uiElements {
 		// TODO: sort by Z-index, showing lower elements first
 
@@ -117,6 +88,9 @@ func (w *Window) Position() r3.Vector {
 		Z: float64(w.position.Z),
 	}
 }
+func (w *Window) Padding() Padding {
+	return w.padding
+}
 
 // TODO, functional params
 // https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
@@ -124,17 +98,17 @@ func NewWindow(p UIElement, width, height int) *Window {
 	w := &Window{
 		parent: p,
 		game:   p.Game(),
+		padding: Padding{
+			Top: 10, Bottom: 10, Right: 10, Left: 10,
+		},
 	}
 
-	// Default button size, if unspecified
+	// Default window size, if unspecified
 	w.size.W = width
 	w.size.H = height
 
 	// TODO: proper window image
 	w.image = NewBox(width, height, "grey_panel").Image
-
-	// TODO: do something clever, getting it automatically from image top
-	w.padding = 3
 
 	return w
 }

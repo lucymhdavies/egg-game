@@ -13,10 +13,10 @@ type FoodType struct {
 	name string
 
 	// How much, if any, health does this food add?
-	health uint8
+	health int8
 
 	// How much, if any, hunger does this food add?
-	hunger uint8
+	hunger int8
 
 	// TODO:
 	// Does this particular food leave the egg feeling fuller for longer?
@@ -28,13 +28,32 @@ type FoodType struct {
 	image *ebiten.Image
 }
 
-var foodCherry = FoodType{
-	name: "cherry",
+var foodTypes = map[string]FoodType{
+	"cherry": FoodType{
+		name: "cherry",
 
-	health: 5,
-	hunger: 15,
+		health: 5,
+		hunger: 15,
 
-	image: loadImage(sprites.Food, "cherry"),
+		image: loadImage(sprites.Food, "cherry"),
+	},
+	"donut": FoodType{
+		name: "donut",
+
+		health: 0,
+		hunger: 10,
+
+		image: loadImage(sprites.Food, "donut"),
+	},
+	"definitely_not_beer": FoodType{
+		name: "definitely_not_beer",
+
+		health: -5,
+		hunger: 0,
+		// TODO: add to fun, when we implement that
+
+		image: loadImage(sprites.Food, "definitely_not_beer"),
+	},
 }
 
 // TODO: make this helper function a bit better

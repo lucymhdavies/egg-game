@@ -21,6 +21,10 @@ type ButtonStyle struct {
 		normal,
 		pushed string
 	}
+	icon struct {
+		imageMap *sprites.ImageMap
+		image    string
+	}
 }
 
 var defaultButtonStyle = ButtonStyle{
@@ -56,12 +60,10 @@ type Button struct {
 		// TODO: be consistant with position above...
 		W, H int
 	}
-	padding struct {
-		// How much fo the image is border, and how much is interior
-		// This refers to padding when buton is PUSHED
-		// (when unpushed, add pushDepth to H)
-		W, H int
-	}
+	// How much fo the image is border, and how much is interior
+	// This refers to padding when buton is PUSHED
+	// (when unpushed, add pushDepth to H)
+	padding Padding
 
 	visible bool
 
@@ -258,6 +260,10 @@ func (button *Button) Position() r3.Vector {
 	}
 }
 
+func (b *Button) Padding() Padding {
+	return b.padding
+}
+
 // TODO, functional params
 // https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
 func NewButton(p UIElement, width, height int, style ButtonStyle) *Button {
@@ -271,24 +277,45 @@ func NewButton(p UIElement, width, height int, style ButtonStyle) *Button {
 	b.size.W = width
 	b.size.H = height
 
+	// Box buttons are simple
+	// Create a box, then return
 	if style.box {
 		b.pushDepth = 4 // TODO: get this atuomatically from the images?
-		b.padding.W = 5
-		b.padding.H = 5
+		b.padding = Padding{Left: 5, Right: 5, Top: 5, Bottom: 5}
 		b.images.normal = NewBox(width, height, style.images.normal).Image
 		b.images.pushed = NewBox(width, height-b.pushDepth, style.images.pushed).Image
-	} else {
-		img, _, err := image.Decode(bytes.NewReader(sprites.Icons[style.images.normal]))
-		if err != nil {
-			log.Fatal(err)
-		}
-		b.images.normal, _ = ebiten.NewImageFromImage(img, ebiten.FilterDefault)
 
-		img, _, err = image.Decode(bytes.NewReader(sprites.Icons[style.images.pushed]))
-		if err != nil {
-			log.Fatal(err)
-		}
-		b.images.pushed, _ = ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+		return b
+	}
+
+	// Otherwise, this is an icon
+
+	img, _, err := image.Decode(bytes.NewReader(sprites.Icons[style.images.normal]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	b.images.normal, _ = ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+
+	img, _, err = image.Decode(bytes.NewReader(sprites.Icons[style.images.pushed]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	b.images.pushed, _ = ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+
+	// If a button has an icon, draw it onto the images
+	if style.icon.image != "" && style.icon.imageMap != nil {
+		op.GeoM.Reset()
+		op.ColorM.Reset()
+		iconImg := loadImage(*style.icon.imageMap, style.icon.image)
+		iconW, iconH := iconImg.Size()
+
+		x := float64(b.size.W-iconW) / 2
+		y := float64(b.size.H-iconH) / 2
+
+		op.GeoM.Translate(x, y)
+
+		b.images.normal.DrawImage(iconImg, op)
+		b.images.pushed.DrawImage(iconImg, op)
 	}
 
 	return b

@@ -24,13 +24,21 @@ func (i *Input) Update() error {
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyI) {
+		// Hide other windows
+		i.game.ui.uiElements["itemsWindow"].SetVisible(false)
+
+		// Toggle this window
 		v := i.game.ui.uiElements["statsWindow"].IsVisible()
 		i.game.ui.uiElements["statsWindow"].SetVisible(!v)
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
-		//if ebiten.IsKeyPressed(ebiten.KeyF) {
-		i.game.world.AddFood(foodCherry)
+		// Hide other windows
+		i.game.ui.uiElements["statsWindow"].SetVisible(false)
+
+		// Toggle this window
+		v := i.game.ui.uiElements["itemsWindow"].IsVisible()
+		i.game.ui.uiElements["itemsWindow"].SetVisible(!v)
 	}
 
 	return nil

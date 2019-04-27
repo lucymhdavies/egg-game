@@ -25,6 +25,7 @@ type Label struct {
 		// Z-index. Keep stuff on top of other stuff
 		Z int
 	}
+	padding Padding
 
 	// TODO: do we care?
 	// Maybe. For now, just assume I'm sensible enough to have really short strings that do not overflow their bounds in any way, kinda like this comment
@@ -117,6 +118,9 @@ func (l *Label) Position() r3.Vector {
 		Y: float64(l.position.Y),
 		Z: float64(l.position.Z),
 	}
+}
+func (l *Label) Padding() Padding {
+	return l.padding
 }
 
 // TODO, functional params

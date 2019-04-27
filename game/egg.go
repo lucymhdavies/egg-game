@@ -285,17 +285,17 @@ func (egg *Egg) Update() error {
 		egg.position = egg.position.Add(egg.velocity)
 
 		// Don't go outside bounds
-		if egg.position.X < egg.size.X/2+egg.world.padding.X {
-			egg.position.X = egg.size.X/2 + egg.world.padding.X
+		if egg.position.X < egg.size.X/2+float64(egg.world.Padding().Top) {
+			egg.position.X = egg.size.X/2 + float64(egg.world.Padding().Top)
 		}
-		if egg.position.Y < egg.size.Y/2+egg.world.padding.Y {
-			egg.position.Y = egg.size.Y/2 + egg.world.padding.Y
+		if egg.position.Y < egg.size.Y/2+float64(egg.world.Padding().Left) {
+			egg.position.Y = egg.size.Y/2 + float64(egg.world.Padding().Left)
 		}
-		if egg.position.X > float64(egg.world.Width)-egg.size.X/2-egg.world.padding.X {
-			egg.position.X = float64(egg.world.Width) - egg.size.X/2 - egg.world.padding.X
+		if egg.position.X > float64(egg.world.Width)-egg.size.X/2-float64(egg.world.Padding().Bottom) {
+			egg.position.X = float64(egg.world.Width) - egg.size.X/2 - float64(egg.world.Padding().Bottom)
 		}
-		if egg.position.Y > float64(egg.world.Height)-egg.size.Y/2-egg.world.padding.Y {
-			egg.position.Y = float64(egg.world.Height) - egg.size.Y/2 - egg.world.padding.Y
+		if egg.position.Y > float64(egg.world.Height)-egg.size.Y/2-float64(egg.world.Padding().Right) {
+			egg.position.Y = float64(egg.world.Height) - egg.size.Y/2 - float64(egg.world.Padding().Right)
 		}
 
 		// Don't go through the floor!
