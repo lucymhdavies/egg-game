@@ -50,6 +50,16 @@ var foodTypes = map[string]FoodType{
 
 		image: loadImage(sprites.Food, "pineapple"),
 	},
+	"egg": FoodType{
+		// Yep, that's kinda creepy. eggs eating eggs
+		name: "egg",
+
+		health: 10,
+		hunger: 0,
+		bites:  5,
+
+		image: loadImage(sprites.Food, "egg"),
+	},
 	"donut": FoodType{
 		name: "donut",
 

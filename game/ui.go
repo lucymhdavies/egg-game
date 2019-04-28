@@ -397,6 +397,10 @@ func (ui *UI) createItemsWindow() *Window {
 
 		// TODO: if this means we're going to spill off the right
 		// set to parent.Padding().Left, then incremement initialOffset.Top
+		if initialOffset.Left+36 > (w.size.W + w.Padding().Left + w.Padding().Right) {
+			initialOffset.Left = w.Padding().Left
+			initialOffset.Top += 36 + 5
+		}
 	}
 
 	return w
