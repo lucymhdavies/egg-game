@@ -21,9 +21,10 @@ type FoodType struct {
 	// How much, if any, hunger does this food add (per bite)?
 	hunger int8
 
-	// TODO:
-	// Does this particular food leave the egg feeling fuller for longer?
-	//saturation float64
+	// Does this food give saturation?
+	// i.e. if the egg fills up while eating this, will it take a while before
+	// it's hungry again?
+	saturation bool
 
 	image *ebiten.Image
 }
@@ -32,18 +33,20 @@ var foodTypes = map[string]FoodType{
 	"cherry": FoodType{
 		name: "cherry",
 
-		health: 5,
-		hunger: 15,
-		bites:  1,
+		health:     5,
+		hunger:     15,
+		bites:      1,
+		saturation: true,
 
 		image: loadImage(sprites.Food, "cherry"),
 	},
 	"pineapple": FoodType{
 		name: "pineapple",
 
-		health: 2,
-		hunger: 5,
-		bites:  5,
+		health:     2,
+		hunger:     20,
+		bites:      5,
+		saturation: true,
 
 		image: loadImage(sprites.Food, "pineapple"),
 	},

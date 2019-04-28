@@ -91,6 +91,9 @@ type Egg struct {
 		// Once this reaches 0, start losing health
 		hunger uint8
 
+		// How long before egg can eat again once full?
+		saturation uint8
+
 		//
 		// Unused below, so far
 		//
@@ -221,7 +224,12 @@ func (egg *Egg) Update() error {
 	if egg.stats.hunger > 0 {
 		hungerChance := 0.1
 		if rand.Float64() <= hungerChance {
-			egg.stats.hunger--
+			// If egg is saturated, decrement that first
+			if egg.stats.saturation > 0 {
+				egg.stats.saturation--
+			} else {
+				egg.stats.hunger--
+			}
 		}
 	} else {
 		if egg.stats.health > 0 {
@@ -364,6 +372,13 @@ func (egg *Egg) Update() error {
 
 					newHunger := float64(egg.stats.hunger) + float64(nearestFood.foodType.hunger)
 					egg.stats.hunger = uint8(math.Min(255.0, newHunger))
+
+					// If we've eaten more than enough to fill the egg...
+					// and this is the kind of food that leaves the egg saturated
+					if newHunger > 255.0 && nearestFood.foodType.saturation {
+						newSaturation := float64(egg.stats.saturation) + float64(nearestFood.foodType.hunger)
+						egg.stats.saturation = uint8(math.Min(255.0, newSaturation))
+					}
 				}
 
 			}
@@ -489,6 +504,8 @@ func (egg *Egg) GetStat(name string) (float64, error) {
 		return float64(egg.stats.health), nil
 	case "hunger":
 		return float64(egg.stats.hunger), nil
+	case "saturation":
+		return float64(egg.stats.saturation), nil
 	case "age":
 		return float64(egg.stats.age), nil
 	}

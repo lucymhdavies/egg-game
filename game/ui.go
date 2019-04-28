@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"image/color"
+	"strings"
 
 	"github.com/golang/geo/r3"
 	"github.com/hajimehoshi/ebiten"
@@ -224,6 +225,45 @@ func (ui *UI) createStatsWindow() *Window {
 		},
 	)
 	w.uiElements = append(w.uiElements, hungerBar, hungerLabel)
+
+	//
+	// Label to display Status Effect(s)
+	// For testing. To be replaced with emotes
+	//
+
+	statusLabel := NewLabel(w, "Status", "Status: %v")
+	statusLabel.textColor = color.RGBA{0, 0, 0, 255}
+	statusLabel.SetVisible(true)
+	statusLabel.centered = false
+	statusLabel.size.W = w.size.W - w.Padding().Left - w.Padding().Right
+	statusLabel.size.H = standardFont.Metrics().Height.Ceil()
+	statusLabel.position.X = w.Padding().Left
+	statusLabel.position.Y = hungerBar.position.Y + hungerBar.size.H + 5
+	statusLabel.updateFunc = func(w *World) {
+		var statuses []string
+
+		// TODO: this should be something like
+		// egg.GetStatuses
+		// with status[0] being the most important?
+		//
+		// I dunno. Figure this out when we do emotes?
+		// Or do I want only SOME statuses to have emotes?
+
+		saturation, _ := w.egg.GetStat("saturation")
+		if saturation > 0 {
+			statuses = append(statuses, fmt.Sprintf("Saturation (%d)", int(saturation)))
+		}
+
+		if len(statuses) == 0 {
+			statuses = []string{"N/A"}
+		}
+
+		statusLabel.text = fmt.Sprintf(statusLabel.textFormat,
+			strings.Join(statuses, ","),
+		)
+	}
+
+	w.uiElements = append(w.uiElements, statusLabel)
 
 	return w
 }
