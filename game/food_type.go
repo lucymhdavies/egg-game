@@ -12,18 +12,18 @@ import (
 type FoodType struct {
 	name string
 
-	// How much, if any, health does this food add?
+	// How many bites does it take to eat this type of food
+	bites uint8
+
+	// How much, if any, health does this food add (per bite)?
 	health int8
 
-	// How much, if any, hunger does this food add?
+	// How much, if any, hunger does this food add (per bite)?
 	hunger int8
 
 	// TODO:
 	// Does this particular food leave the egg feeling fuller for longer?
 	//saturation float64
-
-	// How many bites does it take to eat this type of food
-	// TODO
 
 	image *ebiten.Image
 }
@@ -34,14 +34,25 @@ var foodTypes = map[string]FoodType{
 
 		health: 5,
 		hunger: 15,
+		bites:  1,
 
 		image: loadImage(sprites.Food, "cherry"),
+	},
+	"pineapple": FoodType{
+		name: "pineapple",
+
+		health: 2,
+		hunger: 5,
+		bites:  5,
+
+		image: loadImage(sprites.Food, "pineapple"),
 	},
 	"donut": FoodType{
 		name: "donut",
 
 		health: 0,
 		hunger: 10,
+		bites:  2,
 
 		image: loadImage(sprites.Food, "donut"),
 	},
@@ -50,6 +61,7 @@ var foodTypes = map[string]FoodType{
 
 		health: -5,
 		hunger: 0,
+		bites:  2,
 		// TODO: add to fun, when we implement that
 
 		image: loadImage(sprites.Food, "definitely_not_beer"),

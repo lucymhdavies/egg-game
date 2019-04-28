@@ -45,6 +45,9 @@ var (
 	// how likely it is that old age will lower health
 	oldAgeSicknessChance = 0.1
 
+	// How many seconds between bites of food
+	timeBetweenBites = 0.5
+
 	names = []string{
 		"Aleggsandra", "Deggniel", "Eggberta", "Egglan", "Egglizabeth",
 		"Eggsmerelda", "Gordeggn", "Heleggna", "Llywelegg", "Sabreggna",
@@ -66,6 +69,10 @@ type Egg struct {
 	name  string
 	world *World
 	state State
+
+	// How many seconds before egg can bite again
+	// (only used during stateEat)
+	timeUntilBite float64
 
 	// Some stats we could use for these eggs
 	stats struct {
@@ -187,6 +194,7 @@ func (egg *Egg) Update() error {
 			egg.name = "DEAD"
 			return nil
 		}
+
 		// Age the egg by deltatime
 		egg.stats.age += deltaTime
 	}
@@ -308,20 +316,59 @@ func (egg *Egg) Update() error {
 		}
 
 	case StateEat:
-		nearestFood := egg.world.NearestFood(egg.position)
-		if nearestFood != nil {
+		// If egg needs to wait before taking another bite...
+		if egg.timeUntilBite > 0 {
 
-			// Prevent overflow by adding them as floats, then using
-			// math.Min (which needs floats) to set the final value
-			newHealth := float64(egg.stats.health) + float64(nearestFood.foodType.health)
-			egg.stats.health = uint8(math.Min(255.0, newHealth))
+			egg.timeUntilBite = math.Max(egg.timeUntilBite-deltaTime, 0)
 
-			newHunger := float64(egg.stats.hunger) + float64(nearestFood.foodType.hunger)
-			egg.stats.hunger = uint8(math.Min(255.0, newHunger))
+		} else {
 
-			egg.world.RemoveFood(nearestFood)
+			nearestFood := egg.world.NearestFood(egg.position)
+
+			if nearestFood == nil {
+				// Trivially, there's no food in the world
+				// Back to Idle state
+				egg.state = StateIdle
+			} else {
+				// Is nearest food within eating range?
+				vecFromEggToFood := nearestFood.position.Sub(egg.position)
+				distance := vecFromEggToFood.Norm()
+				if distance >= maxEatDistance {
+					// No, it's too far away.
+					// Back to Idle state
+					egg.state = StateIdle
+				} else {
+					// There is food, and it is close enough
+
+					// Bite it!
+					if nearestFood.bitesLeft > 1 {
+						// there's enough food left to eat more later
+						nearestFood.bitesLeft--
+					} else {
+						// last bite, so delete the food
+						egg.world.RemoveFood(nearestFood)
+					}
+
+					// Cooldown between bites
+					// (also cooldown before egg can move)
+					egg.timeUntilBite += timeBetweenBites
+
+					//
+					// Food modifies egg stats
+					//
+
+					// Prevent overflow by adding them as floats, then using
+					// math.Min (which needs floats) to set the final value
+					newHealth := float64(egg.stats.health) + float64(nearestFood.foodType.health)
+					egg.stats.health = uint8(math.Min(255.0, newHealth))
+
+					newHunger := float64(egg.stats.hunger) + float64(nearestFood.foodType.hunger)
+					egg.stats.hunger = uint8(math.Min(255.0, newHunger))
+				}
+
+			}
+
 		}
-		egg.state = StateIdle
 
 	case StateRespawning:
 		// TODO: maybe accellerate, rather than just linearly going up

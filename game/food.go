@@ -1,6 +1,7 @@
 package game
 
 import (
+	"image"
 	"math/rand"
 
 	"github.com/golang/geo/r2"
@@ -10,12 +11,12 @@ import (
 
 type Food struct {
 	position r3.Vector // refers to midpoint of egg
-	size     r2.Point
+	size     r2.Point  // TODO: maybe use https://godoc.org/image#Point ?
 
 	world *World
 
-	// How much of this has the egg consumed?
-	// TODO
+	// How much of the food is left
+	bitesLeft uint8
 
 	foodType FoodType
 }
@@ -47,8 +48,9 @@ func NewFood(w *World, ft FoodType) *Food {
 			X: float64(sizeX),
 			Y: float64(sizeY),
 		},
-		world:    w,
-		foodType: ft,
+		world:     w,
+		foodType:  ft,
+		bitesLeft: ft.bites,
 	}
 
 	return f
@@ -67,7 +69,26 @@ func (food *Food) Draw(screen *ebiten.Image) error {
 	op.ColorM.Reset()
 
 	op.GeoM.Translate(food.position.X-food.size.X/2, food.position.Y-food.size.Y/2)
-	screen.DrawImage(food.foodType.image, op)
+
+	// how much of food has been eaten?
+	if food.bitesLeft == food.foodType.bites {
+		screen.DrawImage(food.foodType.image, op)
+	} else {
+		sizeX, sizeY := food.foodType.image.Size()
+
+		// How much of the food should we show?
+		partialY := int(float64(sizeY) * (float64(food.bitesLeft) / float64(food.foodType.bites)))
+
+		var partialFood *ebiten.Image
+		partialFood = food.foodType.image.SubImage(image.Rectangle{
+			Min: image.Point{X: 0, Y: 0},
+			Max: image.Point{X: sizeX, Y: partialY},
+		}).(*ebiten.Image)
+		//partialFoodImg, _ := ebiten.NewImageFromImage(partialFood, ebiten.FilterDefault)
+		// TODO: err
+
+		screen.DrawImage(partialFood, op)
+	}
 
 	return nil
 }
