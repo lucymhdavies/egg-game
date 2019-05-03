@@ -69,3 +69,18 @@ Available here: [https://opengameart.org/content/icons-food](https://opengameart
 [CC0 License](https://creativecommons.org/publicdomain/zero/1.0/)
 
 Placeholder for now
+
+
+## Emotes
+
+By [pipoya](https://pipoya.itch.io/)
+
+Available here: [https://pipoya.itch.io/free-popup-emotes-pack](https://pipoya.itch.io/free-popup-emotes-pack)
+
+Free tier available. I've bought it because it's cool!
+
+License
+- For commercial or personal use.
+- Use and edit freely.
+- Not for redistribution or resale as an asset.
+- It can be used other than game development.

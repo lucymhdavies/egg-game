@@ -67,11 +67,13 @@ type Egg struct {
 		bodyFull *ebiten.Image
 
 		shadow *ebiten.Image
-		emote  *ebiten.Image
 	}
 	name  string
 	world *World
 	state State
+
+	// TODO: figure out how I want this to work!
+	status map[string]Emote
 
 	// How many seconds before egg can bite again
 	// (only used during stateEat)
@@ -117,7 +119,8 @@ func NewEgg(w *World) *Egg {
 			float64(w.Height) / 2,
 			0,
 		},
-		world: w,
+		world:  w,
+		status: make(map[string]Emote),
 	}
 
 	e.name = names[rand.Intn(len(names))]
@@ -229,9 +232,14 @@ func (egg *Egg) Update() error {
 		if rand.Float64() <= hungerChance {
 			// If egg is saturated, decrement that first
 			if egg.stats.saturation > 0 {
+				egg.status["saturated"] = emotes["saturated"]
+
 				egg.stats.saturation--
 			} else {
+				delete(egg.status, "saturated")
+
 				egg.stats.hunger--
+
 			}
 		}
 	} else {
@@ -483,7 +491,8 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 	op.GeoM.Reset()
 	op.ColorM.Reset()
 
-	op.GeoM.Translate(egg.position.X-egg.size.X/2, egg.position.Y-egg.size.Y/2-egg.position.Z)
+	op.GeoM.Translate(egg.position.X-egg.size.X/2,
+		egg.position.Y-egg.size.Y/2-egg.position.Z)
 	if egg.state == StateDead {
 		op.ColorM.Scale(255, 255, 255, 0.5)
 	}
@@ -494,10 +503,39 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 
 	screen.DrawImage(egg.images.bodyFull, op)
 
+	if len(egg.status) > 0 {
+		var emote Emote
+
+		// find highest priorty status
+		for _, status := range egg.status {
+			if emote.name == "" {
+				emote = status
+			}
+
+			if status.priority < emote.priority {
+				emote = status
+			}
+		}
+
+		statusW, statusH := emote.image.Size()
+
+		op.GeoM.Reset()
+		op.GeoM.Translate(
+			egg.position.X-
+				float64(statusW/4),
+			egg.position.Y-
+				float64(statusH)-
+				egg.size.Y/2-
+				5)
+
+		screen.DrawImage(emote.image, op)
+
+	}
+
 	// Draw name?
 	// TODO: Need to figure out how to center the text
 	if egg.state != StateRespawning {
-		ebitenutil.DebugPrintAt(screen, egg.name, int(egg.position.X-egg.size.X/2), int(egg.position.Y-egg.position.Z-egg.size.Y/2-20))
+		ebitenutil.DebugPrintAt(screen, egg.name, 5, 0)
 	}
 
 	return nil
