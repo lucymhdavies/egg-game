@@ -134,13 +134,6 @@ func (b *Bar) Draw(screen *ebiten.Image) error {
 	op.GeoM.Reset()
 	op.ColorM.Reset()
 
-	// Create a new empty image
-	barImage, err := ebiten.NewImage(b.size.W, b.size.H, ebiten.FilterDefault)
-	if err != nil {
-		// TODO: better error handling needed here
-		log.Fatal(err)
-	}
-
 	//
 	// Bar Background
 	//
@@ -150,19 +143,27 @@ func (b *Bar) Draw(screen *ebiten.Image) error {
 	mSizeX, _ := b.images["back_mid"].Size()
 
 	// Left
-	barImage.DrawImage(b.images["back_left"], op)
+	op.GeoM.Translate(b.parent.Position().X, b.parent.Position().Y)
+	op.GeoM.Translate(float64(b.position.X), float64(b.position.Y))
+	screen.DrawImage(b.images["back_left"], op)
 
 	// Mid
 	op.GeoM.Reset()
+
+	// TODO: tile instead of scale?
 	scaleAmountX := (float64(b.size.W) - float64(lSizeX+rSizeX)) / float64(mSizeX)
 	op.GeoM.Scale(scaleAmountX, 1.0)
+	op.GeoM.Translate(b.parent.Position().X, b.parent.Position().Y)
+	op.GeoM.Translate(float64(b.position.X), float64(b.position.Y))
 	op.GeoM.Translate(float64(lSizeX), 0.0)
-	barImage.DrawImage(b.images["back_mid"], op)
+	screen.DrawImage(b.images["back_mid"], op)
 
 	// Right
 	op.GeoM.Reset()
+	op.GeoM.Translate(b.parent.Position().X, b.parent.Position().Y)
+	op.GeoM.Translate(float64(b.position.X), float64(b.position.Y))
 	op.GeoM.Translate(float64(b.size.W-rSizeX), 0.0)
-	barImage.DrawImage(b.images["back_right"], op)
+	screen.DrawImage(b.images["back_right"], op)
 
 	if b.value > 0 {
 
@@ -185,34 +186,32 @@ func (b *Bar) Draw(screen *ebiten.Image) error {
 
 		// Left
 		op.GeoM.Reset()
-		barImage.DrawImage(b.images[b.color+"_left"], op)
+		op.GeoM.Translate(b.parent.Position().X, b.parent.Position().Y)
+		op.GeoM.Translate(float64(b.position.X), float64(b.position.Y))
+		screen.DrawImage(b.images[b.color+"_left"], op)
 
 		// Mid
 		op.GeoM.Reset()
-		scaleAmountX = (b.value / b.max) * (float64(b.size.W) - float64(lSizeX+rSizeX)) / float64(mSizeX)
+		scaleAmountX = (b.value / b.max) *
+			(float64(b.size.W) - float64(lSizeX+rSizeX)) /
+			float64(mSizeX)
 		op.GeoM.Scale(scaleAmountX, 1.0)
+
+		op.GeoM.Translate(b.parent.Position().X, b.parent.Position().Y)
+		op.GeoM.Translate(float64(b.position.X), float64(b.position.Y))
+
 		op.GeoM.Translate(float64(lSizeX), 0.0)
-		barImage.DrawImage(b.images[b.color+"_mid"], op)
+		screen.DrawImage(b.images[b.color+"_mid"], op)
 
 		// Right
 		op.GeoM.Reset()
+		op.GeoM.Translate(b.parent.Position().X, b.parent.Position().Y)
+		op.GeoM.Translate(float64(b.position.X), float64(b.position.Y))
 		barMidWidth := scaleAmountX * float64(mSizeX)
 		op.GeoM.Translate(float64(lSizeX)+barMidWidth, 0.0)
-		barImage.DrawImage(b.images[b.color+"_right"], op)
+		screen.DrawImage(b.images[b.color+"_right"], op)
 
 	}
-
-	//
-	// Draw final bar
-	//
-
-	op.GeoM.Reset()
-	op.ColorM.Reset()
-	// translate to parent X,Y
-	op.GeoM.Translate(b.parent.Position().X, b.parent.Position().Y)
-	op.GeoM.Translate(float64(b.position.X), float64(b.position.Y))
-
-	screen.DrawImage(barImage, op)
 
 	return nil
 }

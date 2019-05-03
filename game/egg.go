@@ -63,8 +63,11 @@ type Egg struct {
 		body     *ebiten.Image
 		eyeBall  *ebiten.Image
 		eyePupil *ebiten.Image
-		shadow   *ebiten.Image
-		emote    *ebiten.Image
+		// Tempoary, while the composite egg body does not change
+		bodyFull *ebiten.Image
+
+		shadow *ebiten.Image
+		emote  *ebiten.Image
 	}
 	name  string
 	world *World
@@ -415,61 +418,65 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 	screen.DrawImage(egg.images.shadow, op)
 
 	//
-	// Draw body offscreen
+	// Draw body offscreen unless it already exists
 	//
+	if egg.images.bodyFull == nil {
 
-	// Create a temporary image to draw body + body parts
-	op.GeoM.Reset()
-	op.ColorM.Reset()
-	bodyImg, err := ebiten.NewImage(int(egg.size.X), int(egg.size.Y), ebiten.FilterDefault)
-	if err != nil {
-		// TODO: better error handling needed here
-		log.Fatal(err)
-	}
-	bodyImg.DrawImage(egg.images.body, op)
+		// Create a temporary image to draw body + body parts
+		op.GeoM.Reset()
+		op.ColorM.Reset()
+		bodyImg, err := ebiten.NewImage(int(egg.size.X), int(egg.size.Y), ebiten.FilterDefault)
+		if err != nil {
+			// TODO: better error handling needed here
+			log.Fatal(err)
+		}
+		bodyImg.DrawImage(egg.images.body, op)
 
-	// Sizes for body parts
-	// TODO: maybe store these in egg struct?
-	eyeSizeX, eyeSizeY := egg.images.eyeBall.Size()
-	pupilSizeX, pupilSizeY := egg.images.eyePupil.Size()
+		// Sizes for body parts
+		// TODO: maybe store these in egg struct?
+		eyeSizeX, eyeSizeY := egg.images.eyeBall.Size()
+		pupilSizeX, pupilSizeY := egg.images.eyePupil.Size()
 
-	// Left eyeball
-	op.GeoM.Reset()
-	op.ColorM.Reset()
-	op.GeoM.Translate(
-		egg.size.X/2-float64(eyeSizeX)-2,
-		egg.size.Y/2-float64(eyeSizeY),
-	)
-	bodyImg.DrawImage(egg.images.eyeBall, op)
-
-	if !egg.stats.creepy {
-		// TODO: move these, depending on direction of movement and/or mouse position
-		// Have them either centred, or at a max distance from centre of eye
-		// i.e. add:
-		// +egg.velocity.Y*5
-		// Doesn't quite look right though
+		// Left eyeball
+		op.GeoM.Reset()
+		op.ColorM.Reset()
 		op.GeoM.Translate(
-			float64(eyeSizeX)/2-float64(pupilSizeX)/2,
-			float64(eyeSizeY)/2-float64(pupilSizeY)/2,
+			egg.size.X/2-float64(eyeSizeX)-2,
+			egg.size.Y/2-float64(eyeSizeY),
 		)
-		bodyImg.DrawImage(egg.images.eyePupil, op)
-	}
+		bodyImg.DrawImage(egg.images.eyeBall, op)
 
-	// Right eyeball
-	op.GeoM.Reset()
-	op.GeoM.Translate(
-		egg.size.X/2+2,
-		egg.size.Y/2-float64(eyeSizeY),
-	)
-	bodyImg.DrawImage(egg.images.eyeBall, op)
+		if !egg.stats.creepy {
+			// TODO: move these, depending on direction of movement and/or mouse position
+			// Have them either centred, or at a max distance from centre of eye
+			// i.e. add:
+			// +egg.velocity.Y*5
+			// Doesn't quite look right though
+			op.GeoM.Translate(
+				float64(eyeSizeX)/2-float64(pupilSizeX)/2,
+				float64(eyeSizeY)/2-float64(pupilSizeY)/2,
+			)
+			bodyImg.DrawImage(egg.images.eyePupil, op)
+		}
 
-	if !egg.stats.creepy {
-		// TODO: as above
+		// Right eyeball
+		op.GeoM.Reset()
 		op.GeoM.Translate(
-			float64(eyeSizeX)/2-float64(pupilSizeX)/2,
-			float64(eyeSizeY)/2-float64(pupilSizeY)/2,
+			egg.size.X/2+2,
+			egg.size.Y/2-float64(eyeSizeY),
 		)
-		bodyImg.DrawImage(egg.images.eyePupil, op)
+		bodyImg.DrawImage(egg.images.eyeBall, op)
+
+		if !egg.stats.creepy {
+			// TODO: as above
+			op.GeoM.Translate(
+				float64(eyeSizeX)/2-float64(pupilSizeX)/2,
+				float64(eyeSizeY)/2-float64(pupilSizeY)/2,
+			)
+			bodyImg.DrawImage(egg.images.eyePupil, op)
+		}
+
+		egg.images.bodyFull = bodyImg
 	}
 
 	// Draw our temporary body image
@@ -485,7 +492,7 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 		op.ColorM.Scale(255, 255, 255, 0.5-egg.position.Z/30)
 	}
 
-	screen.DrawImage(bodyImg, op)
+	screen.DrawImage(egg.images.bodyFull, op)
 
 	// Draw name?
 	// TODO: Need to figure out how to center the text
