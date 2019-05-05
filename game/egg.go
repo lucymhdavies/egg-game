@@ -33,14 +33,21 @@ const (
 var (
 
 	// TODO: change both of these depending on mood?
-	defaultBounceChance = 0.01
-	maxBounceSpeed      = 0.5
+	defaultBounceChance   = 0.01
+	defaultSeekFoodChance = 0.75 * 1 / 60
+	maxBounceSpeed        = 0.5
 
 	maxEatDistance = 50.0
 
 	// How old does it have to be before it potentially dies of old age
 	// For now, hard code something really short
 	minOldAgeDeath = 600.0 // 10 minutes
+
+	// Status thresholds
+	hungerThresholdAdd      = 100
+	hungerThresholdClear    = 150
+	starvationThresholdAdd  = 0
+	starvationThresoldClear = 255
 
 	// how likely it is that old age will lower health
 	oldAgeSicknessChance = 0.1
@@ -73,7 +80,7 @@ type Egg struct {
 	state State
 
 	// TODO: figure out how I want this to work!
-	status map[string]Emote
+	statuses map[int]Status
 
 	// How many seconds before egg can bite again
 	// (only used during stateEat)
@@ -119,8 +126,8 @@ func NewEgg(w *World) *Egg {
 			float64(w.Height) / 2,
 			0,
 		},
-		world:  w,
-		status: make(map[string]Emote),
+		world:    w,
+		statuses: make(map[int]Status),
 	}
 
 	e.name = names[rand.Intn(len(names))]
@@ -227,22 +234,28 @@ func (egg *Egg) Update() error {
 	// decrement hunger bar over time
 	// TODO: sometimes decrement this slower
 	// e.g. if asleep, or saturated
-	if egg.stats.hunger > 0 {
+	if int(egg.stats.hunger) > starvationThresholdAdd {
 		hungerChance := 0.1
 		if rand.Float64() <= hungerChance {
 			// If egg is saturated, decrement that first
-			if egg.stats.saturation > 0 {
-				egg.status["saturated"] = emotes["saturated"]
-
-				egg.stats.saturation--
+			if _, found := egg.statuses[StatusSaturated]; found {
+				// TODO: egg.statuses[StatusSaturated].Update()
+				if egg.stats.saturation > 0 {
+					egg.stats.saturation--
+				} else {
+					delete(egg.statuses, StatusSaturated)
+				}
 			} else {
-				delete(egg.status, "saturated")
-
 				egg.stats.hunger--
-
 			}
 		}
+
+		if int(egg.stats.hunger) <= hungerThresholdAdd {
+			egg.statuses[StatusHungry] = statuses[StatusHungry]
+		}
 	} else {
+		egg.statuses[StatusStarving] = statuses[StatusStarving]
+
 		if egg.stats.health > 0 {
 			starveChace := 0.1
 			if rand.Float64() <= starveChace {
@@ -268,8 +281,43 @@ func (egg *Egg) Update() error {
 		// Initialise our bounce chance, based on default
 		bounceChance := defaultBounceChance
 
+		// How likely is it that the egg will seek food?
+		seekFoodChance := defaultSeekFoodChance
+
+		// if between hungerThresholdAdd and 255
+		if int(egg.stats.hunger) > hungerThresholdAdd && egg.stats.hunger < 255 {
+
+			// we want seekFoodChance to be inversely proportional to hunger
+
+			// defaultSeekFoodChance is the base chance
+			//
+			// everything between that and 1.0 is inversely proportional to hunger.
+			// Not directly, rather in relation to how much of the hunger bar is "not hugnry", i.e.
+			// will not give the egg the "hungry" status effect
+
+			additionalSeekFoodChance := (1 - defaultSeekFoodChance) *
+				(1 -
+					(float64(egg.stats.hunger)-float64(hungerThresholdAdd))/
+						float64((255-hungerThresholdAdd))) *
+				(1.0 / 30.0)
+				// TODO: tweak this
+				// Maybe I'm overthinking it
+
+			seekFoodChance += additionalSeekFoodChance
+		}
+
+		// TODO: egg.HasStatus(Status...)
+		if _, found := egg.statuses[StatusHungry]; found {
+			seekFoodChance = 1.0
+		}
+		if _, found := egg.statuses[StatusStarving]; found {
+			seekFoodChance = 1.0
+		}
+
+		fmt.Printf("Seek Food Chance: %v\n", seekFoodChance)
+
 		// If the egg is hungry, and there is food in the world...
-		if egg.stats.hunger < 255 {
+		if egg.stats.hunger < 255 && rand.Float64() <= seekFoodChance {
 			nearestFood = egg.world.NearestFood(egg.position)
 
 			if nearestFood != nil {
@@ -444,23 +492,25 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 
 	screen.DrawImage(egg.images.bodyFull, op)
 
-	if len(egg.status) > 0 {
-		var emote Emote
+	// Draw emotes, unless egg is dead
+	if len(egg.statuses) > 0 && egg.state != StateDead {
+		var visibleStatus Status
 
 		// find highest priorty status
-		for _, status := range egg.status {
-			if emote.name == "" {
-				emote = status
+		for _, status := range egg.statuses {
+			if visibleStatus.name == "" {
+				visibleStatus = status
 			}
 
-			if status.priority < emote.priority {
-				emote = status
+			if status.priority < visibleStatus.priority {
+				visibleStatus = status
 			}
 		}
 
-		statusW, statusH := emote.image.Size()
+		statusW, statusH := visibleStatus.image.Size()
 
 		op.GeoM.Reset()
+		op.ColorM.Reset()
 		op.GeoM.Translate(
 			egg.position.X-
 				float64(statusW/4),
@@ -469,7 +519,7 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 				egg.size.Y/2-
 				5)
 
-		screen.DrawImage(emote.image, op)
+		screen.DrawImage(visibleStatus.image, op)
 
 	}
 
@@ -562,6 +612,20 @@ func (egg *Egg) updateEat() error {
 				if newHunger > 255.0 && nearestFood.foodType.saturation {
 					newSaturation := float64(egg.stats.saturation) + float64(nearestFood.foodType.hunger)
 					egg.stats.saturation = uint8(math.Min(255.0, newSaturation))
+
+					// TODO: egg.AddStatus
+					egg.statuses[StatusSaturated] = statuses[StatusSaturated]
+				}
+
+				// Clear hunger status
+				if newHunger >= float64(hungerThresholdClear) {
+					// TODO: egg.RemoveStatus
+					delete(egg.statuses, StatusHungry)
+				}
+
+				// Clear starvatioon status
+				if newHunger >= float64(starvationThresoldClear) {
+					delete(egg.statuses, StatusStarving)
 				}
 			}
 

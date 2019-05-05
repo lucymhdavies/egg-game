@@ -25,6 +25,14 @@ type FoodType struct {
 	image *ebiten.Image
 }
 
+/* TODO
+const (
+	FoodCherry int = iota
+	FoodPineapple
+	etc.
+)
+*/
+
 var foodTypes = map[string]FoodType{
 	"cherry": FoodType{
 		name: "cherry",

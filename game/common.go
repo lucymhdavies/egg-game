@@ -23,12 +23,12 @@ func loadImage(imageMap sprites.ImageMap, name string) *ebiten.Image {
 	img, _, err := image.Decode(bytes.NewReader(imageMap[name]))
 	if err != nil {
 		// TODO: better error handling needed here
-		log.Fatal(err)
+		log.Fatalf("Error loading %s - %v", name, err)
 	}
 	i, err := ebiten.NewImageFromImage(img, ebiten.FilterDefault)
 	if err != nil {
 		// TODO: better error handling needed here
-		log.Fatal(err)
+		log.Fatalf("Error converting %s - %v", name, err)
 	}
 	return i
 }
