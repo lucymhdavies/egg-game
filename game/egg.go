@@ -335,66 +335,7 @@ func (egg *Egg) Update() error {
 		}
 
 	case StateEat:
-		// If egg needs to wait before taking another bite...
-		if egg.timeUntilBite > 0 {
-
-			egg.timeUntilBite = math.Max(egg.timeUntilBite-deltaTime, 0)
-
-		} else {
-
-			nearestFood := egg.world.NearestFood(egg.position)
-
-			if nearestFood == nil {
-				// Trivially, there's no food in the world
-				// Back to Idle state
-				egg.state = StateIdle
-			} else {
-				// Is nearest food within eating range?
-				vecFromEggToFood := nearestFood.position.Sub(egg.position)
-				distance := vecFromEggToFood.Norm()
-				if distance >= maxEatDistance {
-					// No, it's too far away.
-					// Back to Idle state
-					egg.state = StateIdle
-				} else {
-					// There is food, and it is close enough
-
-					// Bite it!
-					if nearestFood.bitesLeft > 1 {
-						// there's enough food left to eat more later
-						nearestFood.bitesLeft--
-					} else {
-						// last bite, so delete the food
-						egg.world.RemoveFood(nearestFood)
-					}
-
-					// Cooldown between bites
-					// (also cooldown before egg can move)
-					egg.timeUntilBite += timeBetweenBites
-
-					//
-					// Food modifies egg stats
-					//
-
-					// Prevent overflow by adding them as floats, then using
-					// math.Min (which needs floats) to set the final value
-					newHealth := float64(egg.stats.health) + float64(nearestFood.foodType.health)
-					egg.stats.health = uint8(math.Min(255.0, newHealth))
-
-					newHunger := float64(egg.stats.hunger) + float64(nearestFood.foodType.hunger)
-					egg.stats.hunger = uint8(math.Min(255.0, newHunger))
-
-					// If we've eaten more than enough to fill the egg...
-					// and this is the kind of food that leaves the egg saturated
-					if newHunger > 255.0 && nearestFood.foodType.saturation {
-						newSaturation := float64(egg.stats.saturation) + float64(nearestFood.foodType.hunger)
-						egg.stats.saturation = uint8(math.Min(255.0, newSaturation))
-					}
-				}
-
-			}
-
-		}
+		return egg.updateEat()
 
 	case StateRespawning:
 		// TODO: maybe accellerate, rather than just linearly going up
@@ -556,4 +497,77 @@ func (egg *Egg) GetStat(name string) (float64, error) {
 	}
 
 	return 0, fmt.Errorf("No such stat: %s", name)
+}
+
+func (egg *Egg) updateEat() error {
+
+	var deltaTime float64
+	if ebiten.CurrentTPS() > 0 {
+		deltaTime = 1 / ebiten.CurrentTPS()
+	} else {
+		return nil
+	}
+
+	// If egg needs to wait before taking another bite...
+	if egg.timeUntilBite > 0 {
+
+		egg.timeUntilBite = math.Max(egg.timeUntilBite-deltaTime, 0)
+
+	} else {
+
+		nearestFood := egg.world.NearestFood(egg.position)
+
+		if nearestFood == nil {
+			// Trivially, there's no food in the world
+			// Back to Idle state
+			egg.state = StateIdle
+		} else {
+			// Is nearest food within eating range?
+			vecFromEggToFood := nearestFood.position.Sub(egg.position)
+			distance := vecFromEggToFood.Norm()
+			if distance >= maxEatDistance {
+				// No, it's too far away.
+				// Back to Idle state
+				egg.state = StateIdle
+			} else {
+				// There is food, and it is close enough
+
+				// Bite it!
+				if nearestFood.bitesLeft > 1 {
+					// there's enough food left to eat more later
+					nearestFood.bitesLeft--
+				} else {
+					// last bite, so delete the food
+					egg.world.RemoveFood(nearestFood)
+				}
+
+				// Cooldown between bites
+				// (also cooldown before egg can move)
+				egg.timeUntilBite += timeBetweenBites
+
+				//
+				// Food modifies egg stats
+				//
+
+				// Prevent overflow by adding them as floats, then using
+				// math.Min (which needs floats) to set the final value
+				newHealth := float64(egg.stats.health) + float64(nearestFood.foodType.health)
+				egg.stats.health = uint8(math.Max(math.Min(255.0, newHealth), 0))
+
+				newHunger := float64(egg.stats.hunger) + float64(nearestFood.foodType.hunger)
+				egg.stats.hunger = uint8(math.Max(math.Min(255.0, newHunger), 0))
+
+				// If we've eaten more than enough to fill the egg...
+				// and this is the kind of food that leaves the egg saturated
+				if newHunger > 255.0 && nearestFood.foodType.saturation {
+					newSaturation := float64(egg.stats.saturation) + float64(nearestFood.foodType.hunger)
+					egg.stats.saturation = uint8(math.Min(255.0, newSaturation))
+				}
+			}
+
+		}
+
+	}
+
+	return nil
 }
