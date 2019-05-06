@@ -22,6 +22,9 @@ type FoodType struct {
 	// it's hungry again?
 	saturation bool
 
+	// Can the egg crave this food?
+	crave bool
+
 	image  *ebiten.Image
 	shadow *ebiten.Image
 }
@@ -42,6 +45,7 @@ var foodTypes = map[string]FoodType{
 		hunger:     15,
 		bites:      1,
 		saturation: true,
+		crave:      true,
 
 		image:  loadImage(sprites.Food, "cherry"),
 		shadow: createShadowImage(sprites.Food, "cherry"),
@@ -53,6 +57,7 @@ var foodTypes = map[string]FoodType{
 		hunger:     20,
 		bites:      5,
 		saturation: true,
+		crave:      true,
 
 		image:  loadImage(sprites.Food, "pineapple"),
 		shadow: createShadowImage(sprites.Food, "pineapple"),
@@ -74,6 +79,7 @@ var foodTypes = map[string]FoodType{
 		health: 0,
 		hunger: 10,
 		bites:  2,
+		crave:  true,
 
 		image:  loadImage(sprites.Food, "donut"),
 		shadow: createShadowImage(sprites.Food, "donut"),

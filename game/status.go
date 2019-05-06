@@ -1,6 +1,8 @@
 package game
 
 import (
+	"fmt"
+
 	"github.com/hajimehoshi/ebiten"
 	"github.com/lucymhdavies/egg-game/resources/sprites"
 )
@@ -38,7 +40,7 @@ var statuses = map[int]Status{
 	StatusHungry: Status{
 		name:     "Hungry",
 		priority: 2,
-		image:    loadImage(sprites.Emotes, "hungry"),
+		image:    loadImage(sprites.Emotes, "blank"),
 	},
 	StatusStarving: Status{
 		name:     "Starving",
@@ -48,4 +50,22 @@ var statuses = map[int]Status{
 
 	// TODO: Dying (low health)
 	// TODO: Nearly Dead
+}
+
+// Custom status effects for the egg being hungry
+// TODO: make these a different type that implements Status interface
+// i.e. we need some way of tracking what the food is craving, within the Status
+var hungerCravings = make(map[FoodType]Status)
+
+func init() {
+	// populate hungerCravings based on which food types can be craved
+	for _, food := range foodTypes {
+		if food.crave {
+			hungerCravings[food] = Status{
+				name:     "Hungry",
+				priority: 2,
+				image:    loadImage(sprites.Emotes, fmt.Sprintf("hungry_%s", food.name)),
+			}
+		}
+	}
 }

@@ -241,8 +241,24 @@ func (egg *Egg) Update() error {
 		}
 
 		if int(egg.stats.hunger) <= hungerThresholdAdd {
-			egg.statuses[StatusHungry] = statuses[StatusHungry]
+			if _, found := egg.statuses[StatusHungry]; !found {
+				// pick one at random (of the foods that the egg could crave)
+				cravableFoods := make([]FoodType, 0)
+				for f := range hungerCravings {
+					cravableFoods = append(cravableFoods, f)
+				}
+				n := rand.Int() % len(hungerCravings)
+				cravingFood := cravableFoods[n]
+
+				// Create a custom hunger status based on the default
+				customHungry := hungerCravings[cravingFood]
+
+				fmt.Printf("Craving: %s\n", cravingFood.name)
+
+				egg.statuses[StatusHungry] = customHungry
+			}
 		}
+
 	} else {
 		egg.statuses[StatusStarving] = statuses[StatusStarving]
 
@@ -481,7 +497,7 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 	screen.DrawImage(egg.images.bodyFull, op)
 
 	// Draw emotes, unless egg is dead
-	if len(egg.statuses) > 0 && egg.state != StateDead {
+	if len(egg.statuses) > 0 && egg.state != StateDead && egg.state != StateRespawning {
 		var visibleStatus Status
 
 		// find highest priorty status
@@ -508,7 +524,6 @@ func (egg *Egg) Draw(screen *ebiten.Image) error {
 				5)
 
 		screen.DrawImage(visibleStatus.image, op)
-
 	}
 
 	// Draw name?
@@ -595,9 +610,8 @@ func (egg *Egg) updateEat() error {
 				newHunger := float64(egg.stats.hunger) + float64(nearestFood.foodType.hunger)
 				egg.stats.hunger = uint8(math.Max(math.Min(255.0, newHunger), 0))
 
-				// If we've eaten more than enough to fill the egg...
-				// and this is the kind of food that leaves the egg saturated
-				if newHunger > 255.0 && nearestFood.foodType.saturation {
+				// If this is the kind of food that leaves the egg saturated
+				if nearestFood.foodType.saturation {
 					newSaturation := float64(egg.stats.saturation) + float64(nearestFood.foodType.hunger)
 					egg.stats.saturation = uint8(math.Min(255.0, newSaturation))
 
