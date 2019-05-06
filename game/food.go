@@ -68,24 +68,44 @@ func (food *Food) Draw(screen *ebiten.Image) error {
 	op.GeoM.Reset()
 	op.ColorM.Reset()
 
-	op.GeoM.Translate(food.position.X-food.size.X/2, food.position.Y-food.size.Y/2)
-
 	// how much of food has been eaten?
 	if food.bitesLeft == food.foodType.bites {
+		// Draw Shadow
+		op.GeoM.Translate(food.position.X-food.size.X/2, food.position.Y+food.size.Y/3)
+		screen.DrawImage(food.foodType.shadow, op)
+
+		op.GeoM.Reset()
+
+		// Draw Food
+		op.GeoM.Translate(food.position.X-food.size.X/2, food.position.Y-food.size.Y/2)
 		screen.DrawImage(food.foodType.image, op)
 	} else {
-		sizeX, sizeY := food.foodType.image.Size()
 
-		// How much of the food should we show?
+		// How much of the food and shadow should we show?
+		sizeX, sizeY := food.foodType.image.Size()
+		shadowSizeX, shadowSizeY := food.foodType.shadow.Size()
 		partialY := int(float64(sizeY) * (float64(food.bitesLeft) / float64(food.foodType.bites)))
+		shadowPartialY := int(float64(shadowSizeY) * (float64(food.bitesLeft) / float64(food.foodType.bites)))
+
+		var partialShadow *ebiten.Image
+		partialShadow = food.foodType.shadow.SubImage(image.Rectangle{
+			Min: image.Point{X: 0, Y: 0},
+			Max: image.Point{X: shadowSizeX, Y: shadowPartialY},
+		}).(*ebiten.Image)
+
+		op.GeoM.Translate(food.position.X-food.size.X/2,
+			food.position.Y+food.size.Y/3+float64(shadowSizeY-shadowPartialY))
+		screen.DrawImage(partialShadow, op)
+
+		op.GeoM.Reset()
+		op.GeoM.Translate(food.position.X-food.size.X/2,
+			food.position.Y-food.size.Y/2+float64(sizeY-partialY))
 
 		var partialFood *ebiten.Image
 		partialFood = food.foodType.image.SubImage(image.Rectangle{
 			Min: image.Point{X: 0, Y: 0},
 			Max: image.Point{X: sizeX, Y: partialY},
 		}).(*ebiten.Image)
-		//partialFoodImg, _ := ebiten.NewImageFromImage(partialFood, ebiten.FilterDefault)
-		// TODO: err
 
 		screen.DrawImage(partialFood, op)
 	}

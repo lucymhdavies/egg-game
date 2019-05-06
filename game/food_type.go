@@ -22,7 +22,8 @@ type FoodType struct {
 	// it's hungry again?
 	saturation bool
 
-	image *ebiten.Image
+	image  *ebiten.Image
+	shadow *ebiten.Image
 }
 
 /* TODO
@@ -42,7 +43,8 @@ var foodTypes = map[string]FoodType{
 		bites:      1,
 		saturation: true,
 
-		image: loadImage(sprites.Food, "cherry"),
+		image:  loadImage(sprites.Food, "cherry"),
+		shadow: createShadowImage(sprites.Food, "cherry"),
 	},
 	"pineapple": FoodType{
 		name: "pineapple",
@@ -52,7 +54,8 @@ var foodTypes = map[string]FoodType{
 		bites:      5,
 		saturation: true,
 
-		image: loadImage(sprites.Food, "pineapple"),
+		image:  loadImage(sprites.Food, "pineapple"),
+		shadow: createShadowImage(sprites.Food, "pineapple"),
 	},
 	"egg": FoodType{
 		// Yep, that's kinda creepy. eggs eating eggs
@@ -62,7 +65,8 @@ var foodTypes = map[string]FoodType{
 		hunger: 0,
 		bites:  5,
 
-		image: loadImage(sprites.Food, "egg"),
+		image:  loadImage(sprites.Food, "egg"),
+		shadow: createShadowImage(sprites.Food, "egg"),
 	},
 	"donut": FoodType{
 		name: "donut",
@@ -71,7 +75,8 @@ var foodTypes = map[string]FoodType{
 		hunger: 10,
 		bites:  2,
 
-		image: loadImage(sprites.Food, "donut"),
+		image:  loadImage(sprites.Food, "donut"),
+		shadow: createShadowImage(sprites.Food, "donut"),
 	},
 	"definitely_not_beer": FoodType{
 		name: "definitely_not_beer",
@@ -81,6 +86,7 @@ var foodTypes = map[string]FoodType{
 		bites:  2,
 		// TODO: add to fun, when we implement that
 
-		image: loadImage(sprites.Food, "definitely_not_beer"),
+		image:  loadImage(sprites.Food, "definitely_not_beer"),
+		shadow: createShadowImage(sprites.Food, "definitely_not_beer"),
 	},
 }

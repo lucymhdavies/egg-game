@@ -155,25 +155,15 @@ func NewEgg(w *World) *Egg {
 	key := keys[n]
 
 	// Get body image
-	img, _, err := image.Decode(bytes.NewReader(sprites.Eggs[key]))
-	if err != nil {
-		log.Fatal(err)
-	}
-	bodyImg, _ := ebiten.NewImageFromImage(img, ebiten.FilterDefault)
-	sizeX, sizeY := bodyImg.Size()
-	e.size = r2.Point{float64(sizeX), float64(sizeY)}
-	e.images.body = bodyImg
+	e.images.body = loadImage(sprites.Eggs, key)
+	sizeX, sizeY := e.images.body.Size()
+	e.size = r2.Point{X: float64(sizeX), Y: float64(sizeY)}
 
 	// Shadow = body, but squashed vertically
-	shadowImgRaw, _ := ebiten.NewImage(sizeX, sizeY/4, ebiten.FilterDefault)
-	shadowImg, _ := ebiten.NewImageFromImage(img, ebiten.FilterDefault) // TODO: just use bodyImg
-	op.GeoM.Scale(1, 0.25)
-	op.ColorM.Scale(0, 0, 0, 0.5)
-	shadowImgRaw.DrawImage(shadowImg, op)
-	e.images.shadow = shadowImgRaw
+	e.images.shadow = createShadowImage(sprites.Eggs, key)
 
 	// Eyes
-	img, _, err = image.Decode(bytes.NewReader(sprites.Eyeball_png))
+	img, _, err := image.Decode(bytes.NewReader(sprites.Eyeball_png))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -313,8 +303,6 @@ func (egg *Egg) Update() error {
 		if _, found := egg.statuses[StatusStarving]; found {
 			seekFoodChance = 1.0
 		}
-
-		fmt.Printf("Seek Food Chance: %v\n", seekFoodChance)
 
 		// If the egg is hungry, and there is food in the world...
 		if egg.stats.hunger < 255 && rand.Float64() <= seekFoodChance {
