@@ -1,10 +1,14 @@
 # In Netlify, this is running in Docker: netlify/build:xenial
 # https://github.com/netlify/build-image/blob/xenial/Dockerfile
 
+# TODO: handle GOPATH not being set
+# so that I can get this to work locally
+
 .PHONY: build_js
 build_js:
 	go install github.com/gopherjs/gopherjs
-	gopherjs build -o public/egg.js
+	go get -u
+	${GOPATH}/bin/gopherjs build -o public/egg.js
 
 
 
