@@ -3,7 +3,7 @@
 
 .PHONY: build_js
 build_js:
-	GO111MODULE=on go install github.com/gopherjs/gopherjs
+	go install github.com/gopherjs/gopherjs
 	gopherjs build -o public/egg.js
 
 
