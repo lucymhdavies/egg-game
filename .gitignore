@@ -1,2 +1,7 @@
 # Directory where I'm storying resources I'm not using yet
 resources.later
+
+
+# Compiled JS
+public/egg.js
+public/egg.js.map
