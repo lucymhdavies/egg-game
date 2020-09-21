@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/golang/geo v0.0.0-20190507233405-a0e886e97a51
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
-	github.com/hajimehoshi/bitmapfont v1.2.0
+	github.com/hajimehoshi/bitmapfont v1.3.0
 	github.com/hajimehoshi/ebiten v1.10.0-alpha.0.20190719200005-3f6628f1cca1
 	github.com/kisielk/gotool v1.0.0 // indirect
 	github.com/kr/pty v1.1.8 // indirect
